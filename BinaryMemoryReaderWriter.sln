@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.452
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryMemoryReaderWriter", "BinaryMemoryReaderWriter\BinaryMemoryReaderWriter.csproj", "{2D3E1721-F28D-4869-A1AF-56569C1A85DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{D167F0FA-9CED-434A-8DDF-022E25BB1F94}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D3E1721-F28D-4869-A1AF-56569C1A85DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D3E1721-F28D-4869-A1AF-56569C1A85DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D3E1721-F28D-4869-A1AF-56569C1A85DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D3E1721-F28D-4869-A1AF-56569C1A85DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {348C11C8-7598-403A-9E84-7267EAAF755B}
+	EndGlobalSection
+EndGlobal
