@@ -1,4 +1,4 @@
-﻿using BinaryMemoryReaderWriter;
+﻿using SharpFast.BinaryMemoryReaderWriter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
@@ -495,6 +495,102 @@ namespace UnitTests
                 try
                 {
                     writer.Write(new TimeSpan(23876482734L));
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void DecimalLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(2873645.2345m);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length - 1);
+
+                try
+                {
+                    reader.ReadDecimal();
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length - 1);
+
+                try
+                {
+                    writer.Write(2873645.2345m);
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void BytesLimits()
+        {
+            Random rng = new Random();
+
+            byte[] src = new byte[64];
+
+            rng.NextBytes(src);
+
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(src);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length - 1);
+
+                try
+                {
+                    reader.ReadBytes(src, 0, 64);
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length - 1);
+
+                try
+                {
+                    writer.WriteBytes(src, 0, 64);
 
                     Assert.Fail("Should have thrown an OutOfMemoryException.");
                 }

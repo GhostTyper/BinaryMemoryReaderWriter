@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace BinaryMemoryReaderWriter
+namespace SharpFast.BinaryMemoryReaderWriter
 {
     /// <summary>
     /// An UNSAFE binary memory reader. This class can be used to read binary data from a pointer.
@@ -12,8 +12,6 @@ namespace BinaryMemoryReaderWriter
     public unsafe struct UnsafeBinaryMemoryReader
     {
         private byte* position;
-
-        private const string spaceError = "Not enough space to complete read operation.";
 
         /// <summary>
         /// Initializes an UNSAFE binary memory reader.
@@ -88,6 +86,11 @@ namespace BinaryMemoryReaderWriter
 
             return result;
         }
+
+        /// <summary>
+        /// The position of the reader.
+        /// </summary>
+        public byte* Position => position;
 
         /// <summary>
         /// Reads a byte.
@@ -208,6 +211,33 @@ namespace BinaryMemoryReaderWriter
             position += 8;
 
             return new DateTime(*(long*)(position - 8));
+        }
+
+        /// <summary>
+        /// Reads a decimal.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public decimal ReadDecimal()
+        {
+            position += 16;
+
+            return new decimal(new int[] { *(int*)(position - 16), *(int*)(position - 12), *(int*)(position - 8), *(int*)(position - 4) });
+        }
+
+        /// <summary>
+        /// Reads count bytes from the current position into data starting at offset.
+        /// </summary>
+        /// <param name="data">The byte array where data will be written to.</param>
+        /// <param name="offset">The position in the byte array where those data will be written to.</param>
+        /// <param name="count">The amount of bytes which will be written.</param>
+        /// <remarks>BEWARE: This method is also NOT DOING input checks of the given parameters.</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ReadBytes(byte[] data, int offset, int count)
+        {
+            fixed (byte* pData = data)
+                Buffer.MemoryCopy(position, pData + offset, count, count);
+
+            position += count;
         }
     }
 }

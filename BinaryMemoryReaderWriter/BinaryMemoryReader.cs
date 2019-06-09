@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace BinaryMemoryReaderWriter
+namespace SharpFast.BinaryMemoryReaderWriter
 {
     /// <summary>
     /// A binary memory reader. This class can be used to read binary data from a pointer.
@@ -31,6 +31,10 @@ namespace BinaryMemoryReaderWriter
         /// </summary>
         public int Size => size;
 
+        /// <summary>
+        /// The position of the reader.
+        /// </summary>
+        public byte* Position => position;
 
         /// <summary>
         /// Reads a string encoded in UTF-8 with 7 bit encoded length prefix.
@@ -63,7 +67,7 @@ namespace BinaryMemoryReaderWriter
                 position++;
                 size--;
 
-                result = Encoding.UTF8.GetString(position, size);
+                result = Encoding.UTF8.GetString(position, length);
 
                 position += length;
                 size -= length;
@@ -84,7 +88,7 @@ namespace BinaryMemoryReaderWriter
                 position += 2;
                 size -= 2;
 
-                result = Encoding.UTF8.GetString(position, size);
+                result = Encoding.UTF8.GetString(position, length);
 
                 position += length;
                 size -= length;
@@ -105,7 +109,7 @@ namespace BinaryMemoryReaderWriter
                 position += 3;
                 size -= 3;
 
-                result = Encoding.UTF8.GetString(position, size);
+                result = Encoding.UTF8.GetString(position, length);
 
                 position += length;
                 size -= length;
@@ -126,7 +130,7 @@ namespace BinaryMemoryReaderWriter
                 position += 4;
                 size -= 4;
 
-                result = Encoding.UTF8.GetString(position, size);
+                result = Encoding.UTF8.GetString(position, length);
 
                 position += length;
                 size -= length;
@@ -150,7 +154,7 @@ namespace BinaryMemoryReaderWriter
                 position += 5;
                 size -= 5;
 
-                result = Encoding.UTF8.GetString(position, size);
+                result = Encoding.UTF8.GetString(position, length);
 
                 position += length;
                 size -= length;
@@ -334,6 +338,51 @@ namespace BinaryMemoryReaderWriter
             position += 8;
 
             return new DateTime(*(long*)(position - 8));
+        }
+
+        /// <summary>
+        /// Reads a decimal.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public decimal ReadDecimal()
+        {
+            if (size < 16)
+                throw new OutOfMemoryException(spaceError);
+
+            size -= 16;
+            position += 16;
+
+            return new decimal(new int[] { *(int*)(position - 16), *(int*)(position - 12), *(int*)(position - 8), *(int*)(position - 4) });
+        }
+
+        /// <summary>
+        /// Reads count bytes from the current position into data starting at offset.
+        /// </summary>
+        /// <param name="data">The byte array where data will be written to.</param>
+        /// <param name="offset">The position in the byte array where those data will be written to.</param>
+        /// <param name="count">The amount of bytes which will be written.</param>
+        public void ReadBytes(byte[] data, int offset, int count)
+        {
+            if (data == null)
+                throw new ArgumentNullException("data", "data can't be null.");
+
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException("offset", "offset can't be negative.");
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException("count", "count can't be negative.");
+
+            if (offset + count < data.Length)
+                throw new ArgumentOutOfRangeException("count", "offset + count bigger than data.Length.");
+
+            if (size < count)
+                throw new OutOfMemoryException(spaceError);
+
+            fixed (byte* pData = data)
+                Buffer.MemoryCopy(position, pData + offset, count, count);
+
+            position += count;
+            size -= count;
         }
     }
 }

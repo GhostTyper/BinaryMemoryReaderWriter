@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace BinaryMemoryReaderWriter
+namespace SharpFast.BinaryMemoryReaderWriter
 {
     /// <summary>
     /// An UNSAFE binary memory writer. This class can be used to write binary data to a pointer.
@@ -12,8 +12,6 @@ namespace BinaryMemoryReaderWriter
     {
         private byte* position;
 
-        private const string spaceError = "Not enough space to complete write operation.";
-
         /// <summary>
         /// Initializes an UNSAFE binary memory writer.
         /// </summary>
@@ -22,6 +20,16 @@ namespace BinaryMemoryReaderWriter
         public UnsafeBinaryMemoryWriter(byte* position)
         {
             this.position = position;
+        }
+
+        /// <summary>
+        /// Jumps step bytes forward.
+        /// </summary>
+        /// <param name="step">The amount of bytes to jump.</param>
+        /// <remarks>Beware: This method doesn't check for negative values.</remarks>
+        public void Jump(int step)
+        {
+            position += step;
         }
 
         /// <summary>
@@ -55,6 +63,11 @@ namespace BinaryMemoryReaderWriter
 
             position += length;
         }
+
+        /// <summary>
+        /// The position of the writer.
+        /// </summary>
+        public byte* Position => position;
 
         /// <summary>
         /// Writes a byte.
@@ -183,6 +196,41 @@ namespace BinaryMemoryReaderWriter
             *(long*)position = data.Ticks;
 
             position += 8;
+        }
+
+        /// <summary>
+        /// Writes a decimal.
+        /// </summary>
+        /// <param name="data">The decimal to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(decimal data)
+        {
+            int[] values = decimal.GetBits(data);
+
+            *(int*)position = values[0];
+            position += 4;
+            *(int*)position = values[1];
+            position += 4;
+            *(int*)position = values[2];
+            position += 4;
+            *(int*)position = values[3];
+            position += 4;
+        }
+
+        /// <summary>
+        /// Writes count bytes from the current position into data starting at offset.
+        /// </summary>
+        /// <param name="data">The byte array where data will be read from.</param>
+        /// <param name="offset">The position in the byte array where those data will be read from.</param>
+        /// <param name="count">The amount of bytes which will be read.</param>
+        /// <remarks>BEWARE: This method is also NOT DOING input checks of the given parameters.</remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteBytes(byte[] data, int offset, int count)
+        {
+            fixed (byte* pData = data)
+                Buffer.MemoryCopy(pData + offset, position, count, count);
+
+            position += count;
         }
     }
 }

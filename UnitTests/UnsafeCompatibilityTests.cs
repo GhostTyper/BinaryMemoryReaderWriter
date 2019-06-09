@@ -1,5 +1,6 @@
-﻿using BinaryMemoryReaderWriter;
+﻿using SharpFast.BinaryMemoryReaderWriter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 
 namespace UnitTests
@@ -408,6 +409,118 @@ namespace UnitTests
 
                 for (int count = 0; count < 256; count++)
                     Assert.AreEqual(reader.ReadUInt64(), (ulong)count, "UnsafeBinaryMemoryReader ULong incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
+        public unsafe void DecimalWrite()
+        {
+            byte[] data = new byte[4096];
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryWriter writer = new UnsafeBinaryMemoryWriter(pData);
+
+                for (int count = 0; count < 256; count++)
+                    writer.Write(count * 12347822345.34m);
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadDecimal(), count * 12347822345.34m, "UnsafeBinaryMemoryWriter Decimal incompatible to BinaryWriter.");
+        }
+
+        [TestMethod]
+        public unsafe void DecimalRead()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 256; count++)
+                        writer.Write(count * 12347822345.34m);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadDecimal(), count * 12347822345.34m, "UnsafeBinaryMemoryReader Decimal incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
+        public unsafe void BytesWrite()
+        {
+            Random rng = new Random();
+
+            byte[] src = new byte[1024];
+            byte[] chk = new byte[1024];
+
+            rng.NextBytes(src);
+
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 256; count++)
+                        writer.Write(src);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                for (int count = 0; count < 256; count++)
+                {
+                    reader.ReadBytes(chk, 0, 1024);
+
+                    for (int position = 0; position < 1024; position++)
+                        Assert.AreEqual(chk[position], src[position], $"Invalid content at position {position}.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void BytesRead()
+        {
+            Random rng = new Random();
+
+            byte[] src = new byte[1024];
+            byte[] chk;
+
+            rng.NextBytes(src);
+
+            byte[] data = new byte[262144];
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryWriter writer = new UnsafeBinaryMemoryWriter(pData);
+
+                for (int count = 0; count < 256; count++)
+                    writer.WriteBytes(src, 0, 1024);
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                using (BinaryReader reader = new BinaryReader(ms))
+                    for (int count = 0; count < 256; count++)
+                    {
+                        chk = reader.ReadBytes(1024);
+
+                        for (int position = 0; position < 1024; position++)
+                            Assert.AreEqual(chk[position], src[position], $"Invalid content at position {position}.");
+                    }
+
+                data = ms.ToArray();
             }
         }
     }

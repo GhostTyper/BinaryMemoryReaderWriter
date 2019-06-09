@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace BinaryMemoryReaderWriter
+namespace SharpFast.BinaryMemoryReaderWriter
 {
     /// <summary>
     /// A binary memory writer. This class can be used to write binary data to a pointer.
@@ -30,6 +30,27 @@ namespace BinaryMemoryReaderWriter
         /// The remaining bytes we can write to.
         /// </summary>
         public int Size => size;
+
+        /// <summary>
+        /// The position of the writer.
+        /// </summary>
+        public byte* Position => position;
+
+        /// <summary>
+        /// Jumps step bytes forward.
+        /// </summary>
+        /// <param name="step">The amount of bytes to jump.</param>
+        public void Jump(int step)
+        {
+            if (step < 0)
+                throw new ArgumentException("step can't be negative.", "step");
+
+            if (size < step)
+                throw new OutOfMemoryException(spaceError);
+
+            position += step;
+            size -= step;
+        }
 
         /// <summary>
         /// Writes a string in UTF-8 encoding with 7 bit encoded length prefix.
@@ -283,6 +304,61 @@ namespace BinaryMemoryReaderWriter
 
             position += 8;
             size -= 8;
+        }
+
+        /// <summary>
+        /// Writes a decimal.
+        /// </summary>
+        /// <param name="data">The decimal to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(decimal data)
+        {
+            if (size < 16)
+                throw new OutOfMemoryException(spaceError);
+
+            int[] values = decimal.GetBits(data);
+
+            *(int*)position = values[0];
+            position += 4;
+            *(int*)position = values[1];
+            position += 4;
+            *(int*)position = values[2];
+            position += 4;
+            *(int*)position = values[3];
+            position += 4;
+
+            size -= 16;
+        }
+
+        /// <summary>
+        /// Writes count bytes from the current position into data starting at offset.
+        /// </summary>
+        /// <param name="data">The byte array where data will be read from.</param>
+        /// <param name="offset">The position in the byte array where those data will be read from.</param>
+        /// <param name="count">The amount of bytes which will be read.</param>
+        /// <remarks>BEWARE: This method is also NOT DOING input checks of the given parameters.</remarks>
+        public void WriteBytes(byte[] data, int offset, int count)
+        {
+            if (data == null)
+                throw new ArgumentNullException("data", "data can't be null.");
+
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException("offset", "offset can't be negative.");
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException("count", "count can't be negative.");
+
+            if (offset + count < data.Length)
+                throw new ArgumentOutOfRangeException("count", "offset + count bigger than data.Length.");
+
+            if (size < count)
+                throw new OutOfMemoryException(spaceError);
+
+            fixed (byte* pData = data)
+                Buffer.MemoryCopy(pData + offset, position, count, count);
+
+            position += count;
+            size -= count;
         }
     }
 }

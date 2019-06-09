@@ -1,4 +1,4 @@
-﻿using BinaryMemoryReaderWriter;
+﻿using SharpFast.BinaryMemoryReaderWriter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -434,6 +434,90 @@ namespace UnitTests
                 try
                 {
                     writer.Write(new TimeSpan(23876482734L));
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void DecimalLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(1827364.2134324m);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                try
+                {
+                    reader.ReadDecimal();
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    writer.Write(1827364.2134324m);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void BytesLimits()
+        {
+            Random rng = new Random();
+
+            byte[] src = new byte[64];
+
+            rng.NextBytes(src);
+
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(src);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                try
+                {
+                    reader.ReadBytes(src, 0, 64);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    writer.WriteBytes(src, 0, 64);
                 }
                 catch
                 {

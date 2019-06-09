@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.452
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryMemoryReaderWriter", "BinaryMemoryReaderWriter\BinaryMemoryReaderWriter.csproj", "{2D3E1721-F28D-4869-A1AF-56569C1A85DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BinaryMemoryReaderWriter", "BinaryMemoryReaderWriter\BinaryMemoryReaderWriter.csproj", "{2D3E1721-F28D-4869-A1AF-56569C1A85DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{D167F0FA-9CED-434A-8DDF-022E25BB1F94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{D167F0FA-9CED-434A-8DDF-022E25BB1F94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceComparison", "PerformanceComparison\PerformanceComparison.csproj", "{8998033C-D33D-4337-8D49-355200FCC717}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D167F0FA-9CED-434A-8DDF-022E25BB1F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8998033C-D33D-4337-8D49-355200FCC717}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8998033C-D33D-4337-8D49-355200FCC717}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8998033C-D33D-4337-8D49-355200FCC717}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8998033C-D33D-4337-8D49-355200FCC717}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
