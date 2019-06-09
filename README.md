@@ -21,7 +21,7 @@ It generally is a good idea to write code with good performance. However, you sh
 There are 2 ways:
 
 1. Check out the project, build the library and use it. You should also do the tests to check if everything is all right.
-2. Copy the structs you need to your code and use it. With this method you don't need an external library and therefore you have no external dependency.
+2. Copy the structs you need to your code and use them. With this method you don't need an external library and therefore you have no external dependency.
 
 You need to compile your program with `/unsafe` when copying this code to your codebase.
 
@@ -50,10 +50,10 @@ unsafe
 You can also do more complex scenarios with these readers and writers. I, for instance use them to build advanced data structures where some information are available after writing the main content:
 
 ```csharp
+byte[] data = new byte[1024];
+
 unsafe
 {
-    byte[] data = new byte[1024];
-
     fixed (byte* pData = data)
     {
         UnsafeBinaryMemoryWriter writer = new UnsafeBinaryMemoryWriter(pData);
