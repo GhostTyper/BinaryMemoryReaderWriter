@@ -32,12 +32,10 @@ You should look at the Tests of the project. There you may find out how all of t
 You can write an `unsigned integer` to a `byte[]` like this:
 
 ```csharp
-byte[] data;
+byte[] data = new byte[4];
 
 unsafe
 {
-    data = new byte[4];
-
     fixed (byte* pData = data)
     {
         BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, 4);
