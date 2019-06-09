@@ -8,7 +8,7 @@ The performance compared to the `BinaryWriter` and `MemoryStream` combination lo
 
 ![Graphical Overview Writer Performance](./performance.png)
 
-*Those values are generated (see `PerformanceComparison` sub project) via `BenchmarkDotNet`.*
+*Those values are generated (see `PerformanceComparison` sub project) via `BenchmarkDotNet`. If you want to run the benchmarks you need to select the right project as "Starting Project".*
 
 # Should you use these structs?
 
