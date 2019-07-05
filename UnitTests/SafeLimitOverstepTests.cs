@@ -417,6 +417,96 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void FloatLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(133.7f);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length - 1);
+
+                try
+                {
+                    reader.ReadSingle();
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length - 1);
+
+                try
+                {
+                    writer.Write(133.7f);
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void DoubleLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(133.7);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length - 1);
+
+                try
+                {
+                    reader.ReadDouble();
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length - 1);
+
+                try
+                {
+                    writer.Write(133.7);
+
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+                catch (OutOfMemoryException) { }
+                catch (Exception)
+                {
+                    Assert.Fail("Should have thrown an OutOfMemoryException.");
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void DateTimeLimits()
         {
             byte[] data;

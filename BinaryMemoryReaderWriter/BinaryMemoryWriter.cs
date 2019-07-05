@@ -131,6 +131,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
                 size -= length + 5;
             }
+
+            position += length;
         }
 
         /// <summary>
@@ -269,6 +271,38 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 throw new OutOfMemoryException(spaceError);
 
             *(long*)position = data;
+
+            position += 8;
+            size -= 8;
+        }
+
+        /// <summary>
+        /// Writes a float.
+        /// </summary>
+        /// <param name="data">The float to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(float data)
+        {
+            if (size < 4)
+                throw new OutOfMemoryException(spaceError);
+
+            *(float*)position = data;
+
+            position += 4;
+            size -= 4;
+        }
+
+        /// <summary>
+        /// Writes a double.
+        /// </summary>
+        /// <param name="data">The double to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(double data)
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            *(double*)position = data;
 
             position += 8;
             size -= 8;

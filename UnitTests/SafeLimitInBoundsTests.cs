@@ -365,6 +365,84 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void SingleLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(133.7f);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                try
+                {
+                    reader.ReadSingle();
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    writer.Write(133.7f);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void DoubleLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(133.7);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                try
+                {
+                    reader.ReadDouble();
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    writer.Write(133.7);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void DateTimeLimits()
         {
             byte[] data;

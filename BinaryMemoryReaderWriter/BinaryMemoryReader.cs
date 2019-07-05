@@ -311,6 +311,36 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Reads a float.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float ReadSingle()
+        {
+            if (size < 4)
+                throw new OutOfMemoryException(spaceError);
+
+            size -= 4;
+            position += 4;
+
+            return *(float*)(position - 4);
+        }
+
+        /// <summary>
+        /// Reads a double.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double ReadDouble()
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            size -= 8;
+            position += 8;
+
+            return *(double*)(position - 8);
+        }
+
+        /// <summary>
         /// Reads a timespan.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -383,6 +413,294 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             position += count;
             size -= count;
+        }
+
+        /// <summary>
+        /// Peeks a string encoded in UTF-8 with 7 bit encoded length prefix.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns null if the string is empty.</remarks>
+        public string PeekString()
+        {
+            int length;
+
+            if (size <= 0)
+                throw new OutOfMemoryException(spaceError);
+
+            if (*position == 0x00)
+                return null;
+
+            if ((*position & 0x80) == 0x00)
+            {
+                length = *position;
+
+                if (size < length + 1)
+                    throw new OutOfMemoryException(spaceError);
+
+                return Encoding.UTF8.GetString(position + 1, length);
+            }
+
+            if (size < 2)
+                throw new OutOfMemoryException(spaceError);
+
+            if (((*(position + 1)) & 0x80) == 0x00)
+            {
+                length = (*position & 0x7F) | ((*(position + 1) & 0x7F) << 7);
+
+                if (size < length + 2)
+                    throw new OutOfMemoryException(spaceError);
+
+                return Encoding.UTF8.GetString(position + 2, length);
+            }
+
+            if (size < 3)
+                throw new OutOfMemoryException(spaceError);
+
+            if (((*(position + 2)) & 0x80) == 0x00)
+            {
+                length = (*position & 0x7F) | ((*(position + 1) & 0x7F) << 7) | ((*(position + 2) & 0x7F) << 14);
+
+                if (size < length + 3)
+                    throw new OutOfMemoryException(spaceError);
+
+                return Encoding.UTF8.GetString(position + 3, length);
+            }
+
+            if (size < 4)
+                throw new OutOfMemoryException(spaceError);
+
+            if (((*(position + 3)) & 0x80) == 0x00)
+            {
+                length = (*position & 0x7F) | ((*(position + 1) & 0x7F) << 7) | ((*(position + 2) & 0x7F) << 14) | ((*(position + 3) & 0x7F) << 21);
+
+                if (size < length + 4)
+                    throw new OutOfMemoryException(spaceError);
+
+                return Encoding.UTF8.GetString(position + 4, length);
+            }
+
+            if (size < 5)
+                throw new OutOfMemoryException(spaceError);
+
+            if (((*(position + 4)) & 0x80) == 0x00)
+            {
+                length = (*position & 0x7F) | ((*(position + 1) & 0x7F) << 7) | ((*(position + 2) & 0x7F) << 14) | ((*(position + 3) & 0x7F) << 21) | ((*(position + 4) & 0x0F) << 28);
+
+                if (length < 0)
+                    throw new System.IO.InvalidDataException("Ambiguous length information.");
+
+                if (size < length + 5)
+                    throw new OutOfMemoryException(spaceError);
+
+                return Encoding.UTF8.GetString(position + 5, length);
+            }
+
+            throw new OutOfMemoryException(spaceError);
+        }
+
+        /// <summary>
+        /// Peeks a string encoded in UTF-8 with 7 bit encoded length prefix.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
+        public string PeekStringNonNull()
+        {
+            return PeekString() ?? "";
+        }
+
+        /// <summary>
+        /// Peeks a byte.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte PeekByte()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            return *position;
+        }
+
+        /// <summary>
+        /// Peeks a signed byte.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public sbyte PeekSByte()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(sbyte*)position;
+        }
+
+        /// <summary>
+        /// Peeks an unsigned short.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ushort PeekUInt16()
+        {
+            if (size < 2)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(ushort*)position;
+        }
+
+        /// <summary>
+        /// Peeks a short.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public short PeekInt16()
+        {
+            if (size < 2)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(short*)position;
+        }
+
+        /// <summary>
+        /// Peeks a 3 byte integer.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int PeekInt24()
+        {
+            if (size < 3)
+                throw new OutOfMemoryException(spaceError);
+
+            return (*position << 16) | *(ushort*)(position + 1);
+        }
+
+        /// <summary>
+        /// Peeks an unsigned int.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint PeekUInt32()
+        {
+            if (size < 4)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(uint*)position;
+        }
+
+        /// <summary>
+        /// Peeks a int.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int PeekInt32()
+        {
+            if (size < 4)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(int*)position;
+        }
+
+        /// <summary>
+        /// Peeks an unsigned long.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong PeekUInt64()
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(ulong*)position;
+        }
+
+        /// <summary>
+        /// Peeks a long.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long PeekInt64()
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(long*)position;
+        }
+
+        /// <summary>
+        /// Peeks a float.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float PeekSingle()
+        {
+            if (size < 4)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(float*)position;
+        }
+
+        /// <summary>
+        /// Peeks a double.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double PeekDouble()
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            return *(double*)position;
+        }
+
+        /// <summary>
+        /// Peeks a timespan.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TimeSpan PeekTimeSpan()
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            return new TimeSpan(*(long*)position);
+        }
+
+        /// <summary>
+        /// Peeks a datetime.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public DateTime PeekDateTime()
+        {
+            if (size < 8)
+                throw new OutOfMemoryException(spaceError);
+
+            return new DateTime(*(long*)position);
+        }
+
+        /// <summary>
+        /// Peeks a decimal.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public decimal PeekDecimal()
+        {
+            if (size < 16)
+                throw new OutOfMemoryException(spaceError);
+
+            return new decimal(new int[] { *(int*)(position), *(int*)(position + 4), *(int*)(position + 8), *(int*)(position + 12) });
+        }
+
+        /// <summary>
+        /// Peeks count bytes from the current position into data starting at offset.
+        /// </summary>
+        /// <param name="data">The byte array where data will be written to.</param>
+        /// <param name="offset">The position in the byte array where those data will be written to.</param>
+        /// <param name="count">The amount of bytes which will be written.</param>
+        public void PeekBytes(byte[] data, int offset, int count)
+        {
+            if (data == null)
+                throw new ArgumentNullException("data", "data can't be null.");
+
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException("offset", "offset can't be negative.");
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException("count", "count can't be negative.");
+
+            if (offset + count < data.Length)
+                throw new ArgumentOutOfRangeException("count", "offset + count bigger than data.Length.");
+
+            if (size < count)
+                throw new OutOfMemoryException(spaceError);
+
+            fixed (byte* pData = data)
+                Buffer.MemoryCopy(position, pData + offset, count, count);
         }
     }
 }

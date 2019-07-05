@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
 using SharpFast.BinaryMemoryReaderWriter;
@@ -8,6 +8,64 @@ namespace UnitTests
     [TestClass]
     public class SafeCompatibilityTests
     {
+        [TestMethod]
+        public unsafe void MixedRead()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                {
+                    writer.Write("abcABCäöüÄÖÜßáÁàÀ♥♦♣♠");
+                    writer.Write((byte)66);
+                    writer.Write(0x48484848);
+                    writer.Write(0x84848484U);
+                    writer.Write("abcABCäöüÄÖÜßáÁàÀ♥♦♣♠");
+                }
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                Assert.AreEqual(reader.ReadString(), "abcABCäöüÄÖÜßáÁàÀ♥♦♣♠", "BinaryMemoryReader String incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadByte(), (byte)66, "BinaryMemoryReader Byte incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadInt32(), 0x48484848, "BinaryMemoryReader Int incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadUInt32(), 0x84848484U, "BinaryMemoryReader UInt incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadString(), "abcABCäöüÄÖÜßáÁàÀ♥♦♣♠", "BinaryMemoryReader 2nd String incompatible to BinaryReader.");
+            }
+        }
+
+        [TestMethod]
+        public unsafe void MixedWrite()
+        {
+            byte[] data = new byte[256];
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, 256);
+
+                writer.Write("abcABCäöüÄÖÜßáÁàÀ♥♦♣♠");
+                writer.Write((byte)66);
+                writer.Write(0x48484848);
+                writer.Write(0x84848484U);
+                writer.Write("abcABCäöüÄÖÜßáÁàÀ♥♦♣♠");
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+            {
+                Assert.AreEqual(reader.ReadString(), "abcABCäöüÄÖÜßáÁàÀ♥♦♣♠", "BinaryMemoryReader String incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadByte(), (byte)66, "BinaryMemoryReader Byte incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadInt32(), 0x48484848, "BinaryMemoryReader Int incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadUInt32(), 0x84848484U, "BinaryMemoryReader UInt incompatible to BinaryReader.");
+                Assert.AreEqual(reader.ReadString(), "abcABCäöüÄÖÜßáÁàÀ♥♦♣♠", "BinaryMemoryReader 2nd String incompatible to BinaryReader.");
+            }
+        }
+
         [TestMethod]
         public unsafe void StringRead()
         {
@@ -413,6 +471,90 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void FloatWrite()
+        {
+            byte[] data = new byte[2048];
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                for (int count = 0; count < 256; count++)
+                    writer.Write((float)count);
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadSingle(), (float)count, "BinaryMemoryWriter Float incompatible to BinaryWriter.");
+        }
+
+        [TestMethod]
+        public unsafe void FloatRead()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 256; count++)
+                        writer.Write((float)count);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadSingle(), (float)count, "BinaryMemoryReader Float incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
+        public unsafe void DoubleWrite()
+        {
+            byte[] data = new byte[2048];
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                for (int count = 0; count < 256; count++)
+                    writer.Write((double)count);
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadDouble(), (double)count, "BinaryMemoryWriter Double incompatible to BinaryWriter.");
+        }
+
+        [TestMethod]
+        public unsafe void DoubleRead()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 256; count++)
+                        writer.Write((double)count);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadDouble(), (double)count, "BinaryMemoryReader Double incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
         public unsafe void DecimalWrite()
         {
             byte[] data = new byte[4096];
@@ -455,7 +597,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public unsafe void BytesWrite()
+        public unsafe void BytesRead()
         {
             Random rng = new Random();
 
@@ -490,7 +632,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public unsafe void BytesRead()
+        public unsafe void BytesWrite()
         {
             Random rng = new Random();
 

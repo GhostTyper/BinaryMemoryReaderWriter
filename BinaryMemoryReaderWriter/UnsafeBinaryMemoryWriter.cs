@@ -175,6 +175,30 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes a float.
+        /// </summary>
+        /// <param name="data">The float to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(float data)
+        {
+            *(float*)position = data;
+
+            position += 4;
+        }
+
+        /// <summary>
+        /// Writes a double.
+        /// </summary>
+        /// <param name="data">The double to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(double data)
+        {
+            *(double*)position = data;
+
+            position += 8;
+        }
+
+        /// <summary>
         /// Writes a timespan.
         /// </summary>
         /// <param name="data">The timespan to write.</param>
