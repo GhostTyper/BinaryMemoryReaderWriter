@@ -471,6 +471,56 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void CharWrite()
+        {
+            byte[] data = new byte[262144];
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                for (int count = 0; count < 0xD800; count++)
+                    writer.Write((char)count);
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+                for (int count = 0; count < 0xD800; count++)
+                {
+                    char c = reader.ReadChar();
+
+                    Assert.AreEqual(c, (char)count, $"BinaryMemoryWriter Char incompatible to BinaryWriter: 0x{count.ToString("X04")} != 0x{((int)c).ToString("X04")}.");
+                }
+        }
+
+        [TestMethod]
+        public unsafe void CharRead()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 0xD800; count++)
+                        writer.Write((char)count);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                for (int count = 0; count < 0xD800; count++)
+                {
+                    char c = reader.ReadChar();
+
+                    Assert.AreEqual(c, (char)count, $"BinaryMemoryReader Char incompatible to BinaryWriter: 0x{count.ToString("X04")} != 0x{((int)c).ToString("X04")}.");
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void FloatWrite()
         {
             byte[] data = new byte[2048];

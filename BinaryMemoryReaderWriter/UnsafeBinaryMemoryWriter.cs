@@ -65,6 +65,23 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes a string in UTF-8 encoding.
+        /// </summary>
+        /// <param name="text">The string to write.</param>
+        /// <returns>The number of bytes written.</returns>
+        public int WriteVanillaString(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return 0;
+
+            int length = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, text.Length * 4));
+
+            position += length;
+
+            return length;
+        }
+
+        /// <summary>
         /// The position of the writer.
         /// </summary>
         public byte* Position => position;
@@ -118,7 +135,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// </summary>
         /// <param name="data">The integer to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteInt24(int data)
+        public void WriteUInt24(int data)
         {
             *position++ = (byte)(data / 65536);
             *(ushort*)position = (ushort)data;
@@ -172,6 +189,33 @@ namespace SharpFast.BinaryMemoryReaderWriter
             *(long*)position = data;
 
             position += 8;
+        }
+
+        /// <summary>
+        /// Writes a char.
+        /// </summary>
+        /// <param name="data">The char to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(char data)
+        {
+            if (data < 128)
+            {
+                *position++ = (byte)data;
+
+                return;
+            }
+
+            if (data < 2048)
+            {
+                *position++ = (byte)((data >> 6) | 0b11000000);
+                *position++ = (byte)((data & 0b00111111) | 0b10000000);
+
+                return;
+            }
+
+            *position++ = (byte)((data >> 12) | 0b11100000);
+            *position++ = (byte)(((data >> 6) & 0b00111111) | 0b10000000);
+            *position++ = (byte)((data & 0b00111111) | 0b10000000);
         }
 
         /// <summary>

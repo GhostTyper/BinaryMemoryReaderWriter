@@ -78,3 +78,4 @@ Storing the current location like this is quite effective because it's just maki
 
 * Those readers and writers aren't classes. They are structs. This means, you should pass them via the `ref` keyword, if you want to pass them to another method.
 * The readers with `Unsafe` in their name are *unsafe*. They will just continue writing over the memory borders. Also the `Unsafe` versions will not check parameters like the `step` size of the `Jump` method. Beware!
+* Char operations are not exactly compatible with the BinaryWriter or Reader from the .NET framework. These BinaryReaders and Writers here also write `Surrogate` characters without exception.

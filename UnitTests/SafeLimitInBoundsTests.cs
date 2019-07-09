@@ -53,6 +53,43 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void VanillaStringLimits()
+        {
+            foreach (int size in new int[] { 1, 2, 3, 20, 5000 })
+            {
+                byte[] data = new byte[size];
+
+                for (int i = 0; i < size; i++)
+                    data[i] = 65;
+
+                fixed (byte* pData = data)
+                {
+                    BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                    try
+                    {
+                        reader.ReadVanillaString(size);
+                    }
+                    catch
+                    {
+                        Assert.Fail("Should not have thrown an Exception.");
+                    }
+
+                    BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                    try
+                    {
+                        writer.WriteVanillaString(new string('A', size));
+                    }
+                    catch
+                    {
+                        Assert.Fail("Should not have thrown an Exception.");
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void ByteLimits()
         {
             byte[] data;
@@ -356,6 +393,45 @@ namespace UnitTests
                 try
                 {
                     writer.Write(0x5555555555555555UL);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
+        public unsafe void CharLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write('Ä');
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                try
+                {
+                    reader.ReadChar();
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    writer.Write('Ä');
                 }
                 catch
                 {

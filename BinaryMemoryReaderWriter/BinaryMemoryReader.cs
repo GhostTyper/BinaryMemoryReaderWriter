@@ -176,6 +176,35 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Reads a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns null if the string is empty.</remarks>
+        public string ReadVanillaString(int bytes)
+        {
+            if (bytes <= 0)
+                return null;
+
+            if (size < bytes)
+                throw new OutOfMemoryException(spaceError);
+
+            size -= bytes;
+            position += bytes;
+
+            return Encoding.UTF8.GetString(position - bytes, bytes);
+        }
+
+        /// <summary>
+        /// Reads a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
+        public string ReadVanillaStringNonNull(int bytes)
+        {
+            return ReadVanillaString(bytes) ?? "";
+        }
+
+        /// <summary>
         /// Reads a byte.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -199,6 +228,22 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             size--;
             return *(sbyte*)position++;
+        }
+
+        /// <summary>
+        /// Jumps step bytes forward.
+        /// </summary>
+        /// <param name="step">The amount of bytes to jump.</param>
+        public void Jump(int step)
+        {
+            if (step < 0)
+                throw new ArgumentException("step can't be negative.", "step");
+
+            if (size < step)
+                throw new OutOfMemoryException(spaceError);
+
+            position += step;
+            size -= step;
         }
 
         /// <summary>
@@ -235,7 +280,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// Reads a 3 byte integer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ReadInt24()
+        public int ReadUInt24()
         {
             if (size < 3)
                 throw new OutOfMemoryException(spaceError);
@@ -323,6 +368,48 @@ namespace SharpFast.BinaryMemoryReaderWriter
             position += 4;
 
             return *(float*)(position - 4);
+        }
+
+        /// <summary>
+        /// Reads a char.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public char ReadChar()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            if ((*position & 0b10000000) == 0b00000000)
+            {
+                size--;
+                position++;
+
+                return (char)*(position - 1);
+            }
+
+            if ((*position & 0b11100000) == 0b11000000)
+            {
+                if (size < 2)
+                    throw new OutOfMemoryException(spaceError);
+
+                size -= 2;
+                position += 2;
+
+                return (char)((*(position - 1) & 0b00111111) | ((*(position - 2) & 0b00011111) << 6));
+            }
+
+            if ((*position & 0b11110000) == 0b11100000)
+            {
+                if (size < 3)
+                    throw new OutOfMemoryException(spaceError);
+
+                size -= 3;
+                position += 3;
+
+                return (char)((*(position - 1) & 0b00111111) | ((*(position - 2) & 0b00111111) << 6) | ((*(position - 3) & 0b00001111) << 12));
+            }
+
+            throw new InvalidOperationException("Char in memory is too wide for char datatype.");
         }
 
         /// <summary>
@@ -509,6 +596,32 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Peeks a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns null if the string is empty.</remarks>
+        public string PeekVanillaString(int bytes)
+        {
+            if (bytes <= 0)
+                return null;
+
+            if (size < bytes)
+                throw new OutOfMemoryException(spaceError);
+
+            return Encoding.UTF8.GetString(position, bytes);
+        }
+
+        /// <summary>
+        /// Peeks a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
+        public string PeekVanillaStringNonNull(int bytes)
+        {
+            return PeekVanillaString(bytes) ?? "";
+        }
+
+        /// <summary>
         /// Peeks a byte.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -560,7 +673,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// Peeks a 3 byte integer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int PeekInt24()
+        public int PeekUInt24()
         {
             if (size < 3)
                 throw new OutOfMemoryException(spaceError);
@@ -614,6 +727,37 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 throw new OutOfMemoryException(spaceError);
 
             return *(long*)position;
+        }
+
+        /// <summary>
+        /// Peeks a char.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public char PeekChar()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            if ((*position & 0b10000000) == 0b00000000)
+                return (char)*position;
+
+            if ((*position & 0b11100000) == 0b11000000)
+            {
+                if (size < 2)
+                    throw new OutOfMemoryException(spaceError);
+
+                return (char)((*(position + 1) & 0b00111111) | ((*position & 0b00011111) << 6));
+            }
+
+            if ((*position & 0b11110000) == 0b11100000)
+            {
+                if (size < 3)
+                    throw new OutOfMemoryException(spaceError);
+
+                return (char)((*(position + 2) & 0b00111111) | ((*(position + 1) & 0b00111111) << 6) | ((*position & 0b00001111) << 12));
+            }
+
+            throw new InvalidOperationException("Char in memory is too wide for char datatype.");
         }
 
         /// <summary>

@@ -35,6 +35,25 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void VanillaStringPeek()
+        {
+            foreach (int size in new int[] { 1, 2, 3, 20, 5000 })
+            {
+                byte[] data = new byte[size];
+
+                for (int i = 0; i < size; i++)
+                    data[i] = 65;
+
+                fixed (byte* pData = data)
+                {
+                    UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                    Assert.AreEqual(reader.PeekVanillaString(size), new string('A', size), "UnsafeBinaryMemoryReader String incompatible to BinaryReader.");
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void StringNonNullPeek()
         {
             foreach (int size in new int[] { 1, 127, 128, 16383, 16384, 2097151, 2097152, 268435455, 268435456, 300000000 })
@@ -239,6 +258,33 @@ namespace UnitTests
 
                 for (int count = 16; count < 256; count++)
                     Assert.AreEqual(reader.PeekUInt64(), 16UL, "UnsafeBinaryMemoryReader ULong incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
+        public unsafe void CharPeek()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 0xD800; count++)
+                        writer.Write((char)count);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                for (int count = 0; count < 0xD800; count++)
+                {
+                    Assert.AreEqual(reader.PeekChar(), (char)count, "UnsafeBinaryMemoryReader Char incompatible to BinaryWriter.");
+
+                    reader.ReadChar();
+                }
             }
         }
 

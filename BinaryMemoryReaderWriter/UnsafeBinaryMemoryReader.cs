@@ -88,6 +88,41 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Reads a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns null if the string is empty.</remarks>
+        public string ReadVanillaString(int bytes)
+        {
+            if (bytes <= 0)
+                return null;
+
+            position += bytes;
+
+            return Encoding.UTF8.GetString(position - bytes, bytes);
+        }
+
+        /// <summary>
+        /// Reads a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
+        public string ReadVanillaStringNonNull(int bytes)
+        {
+            return ReadVanillaString(bytes) ?? "";
+        }
+
+        /// <summary>
+        /// Jumps step bytes forward.
+        /// </summary>
+        /// <param name="step">The amount of bytes to jump.</param>
+        /// <remarks>Beware: This method doesn't check for negative values.</remarks>
+        public void Jump(int step)
+        {
+            position += step;
+        }
+
+        /// <summary>
         /// The position of the reader.
         /// </summary>
         public byte* Position => position;
@@ -136,7 +171,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// Reads a 3 byte integer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ReadInt24()
+        public int ReadUInt24()
         {
             int result = *position++ << 16;
 
@@ -189,6 +224,36 @@ namespace SharpFast.BinaryMemoryReaderWriter
             position += 8;
 
             return *(long*)(position - 8);
+        }
+
+        /// <summary>
+        /// Reads a char.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public char ReadChar()
+        {
+            if ((*position & 0b10000000) == 0b00000000)
+            {
+                position++;
+
+                return (char)*(position - 1);
+            }
+
+            if ((*position & 0b11100000) == 0b11000000)
+            {
+                position += 2;
+
+                return (char)((*(position - 1) & 0b00111111) | ((*(position - 2) & 0b00011111) << 6));
+            }
+
+            if ((*position & 0b11110000) == 0b11100000)
+            {
+                position += 3;
+
+                return (char)((*(position - 1) & 0b00111111) | ((*(position - 2) & 0b00111111) << 6) | ((*(position - 3) & 0b00001111) << 12));
+            }
+
+            throw new InvalidOperationException("Char in memory is too wide for char datatype.");
         }
 
         /// <summary>
@@ -301,6 +366,29 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Peeks a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns null if the string is empty.</remarks>
+        public string PeekVanillaString(int bytes)
+        {
+            if (bytes <= 0)
+                return null;
+
+            return Encoding.UTF8.GetString(position, bytes);
+        }
+
+        /// <summary>
+        /// Peeks a string encoded in UTF-8.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
+        public string PeekVanillaStringNonNull(int bytes)
+        {
+            return ReadVanillaString(bytes) ?? "";
+        }
+
+        /// <summary>
         /// Peeks a byte.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -340,7 +428,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// Peeks a 3 byte integer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int PeekInt24()
+        public int PeekUInt24()
         {
             return (*position << 16) | *(ushort*)(position + 1);
         }
@@ -379,6 +467,24 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public long PeekInt64()
         {
             return *(long*)position;
+        }
+
+        /// <summary>
+        /// Peeks a char.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public char PeekChar()
+        {
+            if ((*position & 0b10000000) == 0b00000000)
+                return (char)*position;
+
+            if ((*position & 0b11100000) == 0b11000000)
+                return (char)((*(position + 1) & 0b00111111) | ((*position & 0b00011111) << 6));
+
+            if ((*position & 0b11110000) == 0b11100000)
+                return (char)((*(position + 2) & 0b00111111) | ((*(position + 1) & 0b00111111) << 6) | ((*position & 0b00001111) << 12));
+
+            throw new InvalidOperationException("Char in memory is too wide for char datatype.");
         }
 
         /// <summary>

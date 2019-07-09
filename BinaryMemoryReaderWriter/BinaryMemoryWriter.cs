@@ -136,6 +136,27 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes a string in UTF-8 encoding.
+        /// </summary>
+        /// <param name="text">The string to write.</param>
+        /// <returns>The number of bytes written.</returns>
+        public int WriteVanillaString(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return 0;
+
+            if (size < Encoding.UTF8.GetByteCount(text))
+                throw new OutOfMemoryException(spaceError);
+
+            int length = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size));
+
+            size -= length;
+            position += length;
+
+            return length;
+        }
+
+        /// <summary>
         /// Writes a byte.
         /// </summary>
         /// <param name="data">The byte to write.</param>
@@ -200,7 +221,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// </summary>
         /// <param name="data">The integer to write.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteInt24(int data)
+        public void WriteUInt24(int data)
         {
             if (size < 3)
                 throw new OutOfMemoryException(spaceError);
@@ -274,6 +295,49 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             position += 8;
             size -= 8;
+        }
+
+        /// <summary>
+        /// Writes a char.
+        /// </summary>
+        /// <param name="data">The char to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(char data)
+        {
+            if (data < 128)
+            {
+                if (size < 1)
+                    throw new OutOfMemoryException(spaceError);
+
+                *position = (byte)data;
+
+                size--;
+                position++;
+
+                return;
+            }
+
+            if (data < 2048)
+            {
+                if (size < 2)
+                    throw new OutOfMemoryException(spaceError);
+
+                *position++ = (byte)((data >> 6) | 0b11000000);
+                *position++ = (byte)((data & 0b00111111) | 0b10000000);
+
+                size -= 2;
+
+                return;
+            }
+
+            if (size < 3)
+                throw new OutOfMemoryException(spaceError);
+
+            *position++ = (byte)((data >> 12) | 0b11100000);
+            *position++ = (byte)(((data >> 6) & 0b00111111) | 0b10000000);
+            *position++ = (byte)((data & 0b00111111) | 0b10000000);
+
+            size -= 3;
         }
 
         /// <summary>
