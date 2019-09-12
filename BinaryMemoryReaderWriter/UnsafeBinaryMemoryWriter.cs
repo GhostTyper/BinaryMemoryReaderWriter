@@ -37,7 +37,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// Writes a string in UTF-8 encoding with 7 bit encoded length prefix.
         /// </summary>
         /// <param name="text">The string to write.</param>
-        public void Write(string text)
+        public unsafe void Write(string text)
         {
             if (text == null)
             {
@@ -60,7 +60,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 splitLength >>= 7;
             }
 
-            length = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, length));
+            fixed (char* bText = text)
+                length = Encoding.UTF8.GetBytes(bText, text.Length, position, length);
 
             position += length;
         }
@@ -70,12 +71,15 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// </summary>
         /// <param name="text">The string to write.</param>
         /// <returns>The number of bytes written.</returns>
-        public int WriteVanillaString(string text)
+        public unsafe int WriteVanillaString(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return 0;
 
-            int length = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, text.Length * 4));
+            int length;
+
+            fixed (char* bText = text)
+                length = Encoding.UTF8.GetBytes(bText, text.Length, position, text.Length * 4);
 
             position += length;
 
@@ -333,9 +337,11 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <param name="length">The amount of bytes to fill.</param>
         public void Fill(Random rng, int length)
         {
-            rng.NextBytes(new Span<byte>(position, length));
+            for (; length >= 4; position += 4, length -= 4)
+                *(int*)position = rng.Next(int.MinValue, int.MaxValue);
 
-            position += length;
+            for (; length >= 0; position++, length--)
+                *position = (byte)rng.Next(256);
         }
 
         /// <summary>
@@ -345,7 +351,12 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <param name="length">The amount of bytes to fill.</param>
         public void Fill(RNGCryptoServiceProvider rng, int length)
         {
-            rng.GetBytes(new Span<byte>(position, length));
+            byte[] rData = new byte[length];
+
+            rng.GetBytes(rData);
+
+            fixed (byte* bRData = rData)
+                Buffer.MemoryCopy(bRData, position, length, rData.Length);
 
             position += length;
         }

@@ -1,20 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-    <ApplicationIcon />
-    <StartupObject />
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>BinaryMemoryReaderWriter.xml</DocumentationFile>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SharpFast.BinaryMemoryReaderWriter</AssemblyName>
+    <RootNamespace>SharpFast.BinaryMemoryReaderWriter</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>BinaryMemoryReaderWriter.xml</DocumentationFile>
+    <DocumentationFile>bin\SharpFast.BinaryMemoryReaderWriter.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>bin\SharpFast.BinaryMemoryReaderWriter.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>

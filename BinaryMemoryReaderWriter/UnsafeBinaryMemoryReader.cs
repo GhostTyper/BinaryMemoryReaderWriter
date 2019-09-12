@@ -48,7 +48,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (length == 0)
                 return null;
 
-            result = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(position, length));
+            result = Encoding.UTF8.GetString(position, length);
 
             position += length;
 
@@ -80,7 +80,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (length == 0)
                 return "";
 
-            result = Encoding.UTF8.GetString(new ReadOnlySpan<byte>(position, length));
+            result = Encoding.UTF8.GetString(position, length);
 
             position += length;
 

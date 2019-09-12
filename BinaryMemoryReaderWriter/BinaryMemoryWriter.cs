@@ -78,7 +78,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
                     throw new OutOfMemoryException(spaceError);
 
                 *(position++) = (byte)length;
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size - 1));
+
+                fixed (char* chars = text)
+                    Encoding.UTF8.GetBytes(chars, text.Length, position, size - 1);
 
                 size -= length + 1;
             }
@@ -89,7 +91,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
                 *(position++) = (byte)(length | 0x80);
                 *(position++) = (byte)(length >> 7);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size - 2));
+
+                fixed (char* chars = text)
+                    Encoding.UTF8.GetBytes(chars, text.Length, position, size - 2);
 
                 size -= length + 2;
             }
@@ -101,7 +105,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 *(position++) = (byte)(length | 0x80);
                 *(position++) = (byte)((length >> 7) | 0x80);
                 *(position++) = (byte)(length >> 14);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size - 3));
+
+                fixed (char* chars = text)
+                    Encoding.UTF8.GetBytes(chars, text.Length, position, size - 3);
 
                 size -= length + 3;
             }
@@ -114,7 +120,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 *(position++) = (byte)((length >> 7) | 0x80);
                 *(position++) = (byte)((length >> 14) | 0x80);
                 *(position++) = (byte)(length >> 21);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size - 4));
+
+                fixed (char* chars = text)
+                    Encoding.UTF8.GetBytes(chars, text.Length, position, size - 4);
 
                 size -= length + 4;
             }
@@ -128,7 +136,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 *(position++) = (byte)((length >> 14) | 0x80);
                 *(position++) = (byte)((length >> 21) | 0x80);
                 *(position++) = (byte)(length >> 28);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size - 5));
+
+                fixed (char* chars = text)
+                    Encoding.UTF8.GetBytes(chars, text.Length, position, size - 5);
 
                 size -= length + 5;
             }
@@ -149,7 +159,10 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (size < Encoding.UTF8.GetByteCount(text))
                 throw new OutOfMemoryException(spaceError);
 
-            int length = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(position, size));
+            int length;
+
+            fixed (char* chars = text)
+                length = Encoding.UTF8.GetBytes(chars, text.Length, position, size);
 
             size -= length;
             position += length;
@@ -506,19 +519,25 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <param name="rng">The random number generator to use.</param>
         public void Fill(Random rng)
         {
-            rng.NextBytes(new Span<byte>(position, size));
+            for (; size >= 4; position += 4, size -= 4)
+                *(int*)position = rng.Next(int.MinValue, int.MaxValue);
 
-            position += size;
-            size = 0;
+            for (; size >= 0; position++, size--)
+                *position = (byte)rng.Next(256);
         }
 
         /// <summary>
         /// Fills the remaining memory with random data.
         /// </summary>
         /// <param name="rng">The random number generator to use.</param>
-        public void Fill(RNGCryptoServiceProvider rng)
+        public unsafe void Fill(RNGCryptoServiceProvider rng)
         {
-            rng.GetBytes(new Span<byte>(position, size));
+            byte[] rData = new byte[size];
+
+            rng.GetBytes(rData);
+
+            fixed (byte* bRData = rData)
+                Buffer.MemoryCopy(bRData, position, size, rData.Length);
 
             position += size;
             size = 0;
@@ -563,10 +582,11 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (length > size)
                 throw new OutOfMemoryException(spaceError);
 
-            rng.NextBytes(new Span<byte>(position, length));
+            for (; length >= 4; position += 4, size -= 4, length -= 4)
+                *(int*)position = rng.Next(int.MinValue, int.MaxValue);
 
-            position += length;
-            size -= length;
+            for (; length >= 0; position++, size--, length--)
+                *position = (byte)rng.Next(256);
         }
 
         /// <summary>
@@ -579,7 +599,12 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (length > size)
                 throw new OutOfMemoryException(spaceError);
 
-            rng.GetBytes(new Span<byte>(position, length));
+            byte[] rData = new byte[length];
+
+            rng.GetBytes(rData);
+
+            fixed (byte* bRData = rData)
+                Buffer.MemoryCopy(bRData, position, length, rData.Length);
 
             position += length;
             size -= length;

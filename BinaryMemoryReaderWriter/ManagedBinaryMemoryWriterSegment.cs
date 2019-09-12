@@ -30,7 +30,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// Writes a string in UTF-8 encoding with 7 bit encoded length prefix.
         /// </summary>
         /// <param name="text">The string to write.</param>
-        public void Write(string text)
+        public unsafe void Write(string text)
         {
             if (text == null)
             {
@@ -59,7 +59,10 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 }
 
                 data[position++] = (byte)length;
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(data, position, size - 1));
+
+                fixed (char* chars = text)
+                fixed (byte* bData = data)
+                    Encoding.UTF8.GetBytes(chars, text.Length, bData + position, size - 1);
 
                 size -= length + 1;
             }
@@ -74,7 +77,10 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
                 data[position++] = (byte)(length | 0x80);
                 data[position++] = (byte)(length >> 7);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(data, position, size - 2));
+
+                fixed (char* chars = text)
+                fixed (byte* bData = data)
+                    Encoding.UTF8.GetBytes(chars, text.Length, bData + position, size - 2);
 
                 size -= length + 2;
             }
@@ -90,7 +96,10 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 data[position++] = (byte)(length | 0x80);
                 data[position++] = (byte)((length >> 7) | 0x80);
                 data[position++] = (byte)(length >> 14);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(data, position, size - 3));
+
+                fixed (char* chars = text)
+                fixed (byte* bData = data)
+                    Encoding.UTF8.GetBytes(chars, text.Length, bData + position, size - 3);
 
                 size -= length + 3;
             }
@@ -107,7 +116,10 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 data[position++] = (byte)((length >> 7) | 0x80);
                 data[position++] = (byte)((length >> 14) | 0x80);
                 data[position++] = (byte)(length >> 21);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(data, position, size - 4));
+
+                fixed (char* chars = text)
+                fixed (byte* bData = data)
+                    Encoding.UTF8.GetBytes(chars, text.Length, bData + position, size - 4);
 
                 size -= length + 4;
             }
@@ -125,7 +137,10 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 data[position++] = (byte)((length >> 14) | 0x80);
                 data[position++] = (byte)((length >> 21) | 0x80);
                 data[position++] = (byte)(length >> 28);
-                Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(data, position, size - 5));
+
+                fixed (char* chars = text)
+                fixed (byte* bData = data)
+                    Encoding.UTF8.GetBytes(chars, text.Length, bData + position, size - 5);
 
                 size -= length + 5;
             }
@@ -138,7 +153,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// </summary>
         /// <param name="text">The string to write.</param>
         /// <returns>The number of bytes written.</returns>
-        public int WriteVanillaString(string text)
+        public unsafe int WriteVanillaString(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return 0;
@@ -152,7 +167,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 return requiredSize;
             }
 
-            requiredSize = Encoding.UTF8.GetBytes(text.AsSpan(), new Span<byte>(data, position, size));
+            fixed (char* chars = text)
+            fixed (byte* bData = data)
+                requiredSize = Encoding.UTF8.GetBytes(chars, text.Length, bData + position, size);
 
             size -= requiredSize;
             position += requiredSize;
@@ -574,7 +591,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// </summary>
         /// <param name="rng">The random number generator to use.</param>
         /// <param name="length">The amount of bytes to fill.</param>
-        public void Fill(Random rng, int length)
+        public unsafe void Fill(Random rng, int length)
         {
             if (length > size)
             {
@@ -583,10 +600,14 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 return;
             }
 
-            rng.NextBytes(new Span<byte>(data, position, length));
+            fixed (byte* bData = data)
+            {
+                for (; length >= 4; position += 4, size -= 4, length -= 4)
+                    *(int*)(bData + position) = rng.Next(int.MinValue, int.MaxValue);
 
-            position += length;
-            size -= length;
+                for (; length >= 0; position++, size--, length--)
+                    *(int*)(bData + position) = (byte)rng.Next(256);
+            }
         }
 
         /// <summary>
@@ -603,7 +624,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 return;
             }
 
-            rng.GetBytes(new Span<byte>(data, position, length));
+            rng.GetBytes(data, position, length);
 
             position += length;
             size -= length;

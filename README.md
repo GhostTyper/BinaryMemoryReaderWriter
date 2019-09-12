@@ -1,6 +1,6 @@
 # Introduction
 
-`BinaryMemoryReaderWriter` is a memory reader and writer mostly compatible to the `BinaryReader` and `BinaryWriter` of the .NET Framework. It offers various flavours of readers and writers suitable for different situations.
+`BinaryMemoryReaderWriter` is a memory reader and writer mostly compatible to the `BinaryReader` and `BinaryWriter` of the .NET Framework. It offers various flavours of readers and writers suitable for different situations. It is compatible to .NET Standard 2.0 and therefore free of `Span<T>`. This means: Those classes and structs are also compatible to the classic .NET Framework.
 
 The main aim is to build readers and writers which perform the best possible way. The `BinaryReader` or -`Writer` of the .NET framework uses a `Stream` to write to. If you want to write to a `byte[]` this approach is generally more slow compared to writing directly to the memory like the `BinaryReaderWriter` of this library does.
 
