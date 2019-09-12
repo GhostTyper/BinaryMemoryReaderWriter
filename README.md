@@ -1,22 +1,28 @@
 # Introduction
 
-`BinaryMemoryReaderWriter` is a memory reader and writer mostly compatible to the `BinaryReader` and `BinaryWriter` of the .NET Framework.
+`BinaryMemoryReaderWriter` is a memory reader and writer mostly compatible to the `BinaryReader` and `BinaryWriter` of the .NET Framework. It offers various flavours of readers and writers suitable for different situations.
 
 The main aim is to build readers and writers which perform the best possible way. The `BinaryReader` or -`Writer` of the .NET framework uses a `Stream` to write to. If you want to write to a `byte[]` this approach is generally more slow compared to writing directly to the memory like the `BinaryReaderWriter` of this library does.
+
+Those readers and writers are supported:
+
+* `ManagedBinaryMemoryWriter`: This is a writer which is fully managed, including it's own memory management. This writer builds a linked list with written segments. Smaller write commands will be combined into the same segment. This writer is about double as fast as the `BinaryWriter` -> `MemoryStream` combination from the .NET framework and should be safe to use.
+* `BinaryMemoryReader` and `BinaryMemoryWriter`: This pair of reader and writer is about 3-4 times faster than the solution of the .NET framework. However it requires you to pin the pointer you give to the reader or writer.
+* `UnsafeBinaryMemoryReader` and `UnsafeBinaryMemoryWriter`: These reader and writer are the fastest and are actually unsafe. You should only use them, if you are sure that you can trust all the input variables. However they offer the highest performance available and are avoiding bounds-checking. Also non destination checks are removed, so this writer (and reader) just takes your comand and does as you pleased. You have been warned!
 
 The performance compared to the `BinaryWriter` and `MemoryStream` combination looks as follows:
 
 ![Graphical Overview Writer Performance](./performance.png)
 
-*Those values are generated (see `PerformanceComparison` sub project) via `BenchmarkDotNet`. If you want to run the benchmarks you need to select the right project as "Starting Project".*
+*Those values are generated (see `PerformanceComparison` sub project) via `BenchmarkDotNet`. If you want to run the benchmarks you need to select the right project as "Starting Project". Also: Initialize means initialize and write one byte. Write `byte`, `short` or `string` means writing 10000 of them in a for-loop which also goes into the measurement.*
 
-# Should you use these structs?
+# Should you use these classes or structs?
 
 Do you have a performance problem which really is caused by the CPU? (You most probably don't.) Don't use these readers and writers if your performance issues are caused by other components, like the network interfaces or disks.
 
 It generally is a good idea to write code with good performance. However, you should also consider compatibility, etc. And the most compatible way of doing things is to just use components and classes out of the primary framework (.NET Framework).
 
-# How to use those structs?
+# How to use those classes or structs?
 
 There are 2 ways:
 
@@ -72,10 +78,11 @@ unsafe
 }
 ```
 
-Storing the current location like this is quite effective because it's just making a copy of one pointer. Or in the case of the not `Unsafe` writer it's additionally the size which will be copied.
+Storing the current location like this with one of the structs is quite effective because it's just making a copy of one pointer. Or in the case of the not `Unsafe` writer it's additionally the size which will be copied. Beware that `ManagesBinaryMemoryWriter` is a class.
 
 # What to consider?
 
-* Those readers and writers aren't classes. They are structs. This means, you should pass them via the `ref` keyword, if you want to pass them to another method.
+* Those readers and writers aren't classes (except `ManagedBinaryMemoryWriter`). They are structs. This means, you should pass them via the `ref` keyword, if you want to pass them to another method.
 * The readers with `Unsafe` in their name are *unsafe*. They will just continue writing over the memory borders. Also the `Unsafe` versions will not check parameters like the `step` size of the `Jump` method. Beware!
 * Char operations are not exactly compatible with the BinaryWriter or Reader from the .NET framework. These BinaryReaders and Writers here also write `Surrogate` characters without exception.
+* `ManagedBinaryMemoryWriter` is a class. There currently exists no reader, because you usually can initialize an existing array easily with one of the other readers. If there is a real demand, I will write a ManagedBinaryMemoryReader.

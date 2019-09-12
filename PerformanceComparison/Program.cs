@@ -8,7 +8,7 @@ namespace PerformanceComparison
 {
     public class Program
     {
-        static unsafe void Main(string[] args)
+        static unsafe void Main()
         {
             BenchmarkRunner.Run<Program>();
         }
@@ -37,6 +37,14 @@ namespace PerformanceComparison
             MemoryStream ms = new MemoryStream(new byte[1]);
             BinaryReader reader = new BinaryReader(ms);
             reader.ReadByte();
+        }
+
+        [Benchmark]
+        public unsafe void ManagedBinaryMemoryWriter_Initialize()
+        {
+            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+            writer.Write((byte)0x5A);
         }
 
         [Benchmark]
@@ -105,6 +113,15 @@ namespace PerformanceComparison
 
             for (int count = 0; count < 10240; count++)
                 reader.ReadByte();
+        }
+
+        [Benchmark]
+        public unsafe void ManagedBinaryMemoryWriter_Bytes()
+        {
+            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+            for (int count = 0; count < 10240; count++)
+                writer.Write((byte)0x5A);
         }
 
         [Benchmark]
@@ -184,6 +201,15 @@ namespace PerformanceComparison
         }
 
         [Benchmark]
+        public unsafe void ManagedBinaryMemoryWriter_Short()
+        {
+            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+            for (int count = 0; count < 10240; count++)
+                writer.Write((short)0x5AA5);
+        }
+
+        [Benchmark]
         public unsafe void BinaryMemoryWriter_Short()
         {
             byte[] data = new byte[20480];
@@ -258,6 +284,15 @@ namespace PerformanceComparison
 
             for (int count = 0; count < 10240; count++)
                 reader.ReadString();
+        }
+
+        [Benchmark]
+        public unsafe void ManagedBinaryMemoryWriter_Strings()
+        {
+            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+            for (int count = 0; count < 10240; count++)
+                writer.Write("ABCDEFGHI");
         }
 
         [Benchmark]

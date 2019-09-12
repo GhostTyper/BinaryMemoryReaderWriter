@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace SharpFast.BinaryMemoryReaderWriter
@@ -457,6 +458,131 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             position += count;
             size -= count;
+        }
+
+        /// <summary>
+        /// Fills the remaining memory with 0x00.
+        /// </summary>
+        public void Fill()
+        {
+            while (size > 7)
+            {
+                *(ulong*)position = 0x0000000000000000;
+
+                size -= 8;
+                position += 8;
+            }
+
+            while (size-- > 0)
+                *position++ = 0x00;
+        }
+
+        /// <summary>
+        /// Fills the remaining memory with data.
+        /// </summary>
+        /// <param name="data">The byte to fill teh data.</param>
+        public void Fill(byte data)
+        {
+            if (size > 80)
+            {
+                ulong oData = ((ulong)data << 56) | ((ulong)data << 48) | ((ulong)data << 40) | ((ulong)data << 32) | ((ulong)data << 24) | ((ulong)data << 16) | ((ulong)data << 8) | (ulong)data;
+
+                while (size > 7)
+                {
+                    *(ulong*)position = oData;
+
+                    size -= 8;
+                    position += 8;
+                }
+            }
+
+            while (size-- > 0)
+                *position++ = data;
+        }
+
+        /// <summary>
+        /// Fills the remaining memory with random data.
+        /// </summary>
+        /// <param name="rng">The random number generator to use.</param>
+        public void Fill(Random rng)
+        {
+            rng.NextBytes(new Span<byte>(position, size));
+
+            position += size;
+            size = 0;
+        }
+
+        /// <summary>
+        /// Fills the remaining memory with random data.
+        /// </summary>
+        /// <param name="rng">The random number generator to use.</param>
+        public void Fill(RNGCryptoServiceProvider rng)
+        {
+            rng.GetBytes(new Span<byte>(position, size));
+
+            position += size;
+            size = 0;
+        }
+
+        /// <summary>
+        /// Fills length bytes memory with data.
+        /// </summary>
+        /// <param name="data">The byte to fill teh data.</param>
+        /// <param name="length">The amount of bytes to fill.</param>
+        public void Fill(byte data, int length)
+        {
+            if (length > size)
+                throw new OutOfMemoryException(spaceError);
+
+            size -= length;
+
+            if (length > 80)
+            {
+                ulong oData = ((ulong)data << 56) | ((ulong)data << 48) | ((ulong)data << 40) | ((ulong)data << 32) | ((ulong)data << 24) | ((ulong)data << 16) | ((ulong)data << 8) | (ulong)data;
+
+                while (length > 7)
+                {
+                    *(ulong*)position = oData;
+
+                    length -= 8;
+                    position += 8;
+                }
+            }
+
+            while (length-- > 0)
+                *position++ = data;
+        }
+
+        /// <summary>
+        /// Fills length bytes memory with random data.
+        /// </summary>
+        /// <param name="rng">The random number generator to use.</param>
+        /// <param name="length">The amount of bytes to fill.</param>
+        public void Fill(Random rng, int length)
+        {
+            if (length > size)
+                throw new OutOfMemoryException(spaceError);
+
+            rng.NextBytes(new Span<byte>(position, length));
+
+            position += length;
+            size -= length;
+        }
+
+        /// <summary>
+        /// Fills length bytes memory with random data.
+        /// </summary>
+        /// <param name="rng">The random number generator to use.</param>
+        /// <param name="length">The amount of bytes to fill.</param>
+        public void Fill(RNGCryptoServiceProvider rng, int length)
+        {
+            if (length > size)
+                throw new OutOfMemoryException(spaceError);
+
+            rng.GetBytes(new Span<byte>(position, length));
+
+            position += length;
+            size -= length;
         }
     }
 }
