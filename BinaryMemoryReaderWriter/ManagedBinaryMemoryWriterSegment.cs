@@ -534,7 +534,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (count < 0)
                 throw new ArgumentOutOfRangeException("count", "count can't be negative.");
 
-            if (offset + count < data.Length)
+            if (offset + count > data.Length)
                 throw new ArgumentOutOfRangeException("count", "offset + count bigger than data.Length.");
 
             if (size < count)
@@ -638,6 +638,20 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 Buffer.BlockCopy(this.data, 0, data, position, this.position);
                 position += this.position;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe long ToPointer(ref byte* ptr)
+        {
+            if (position > 0)
+            {
+                fixed (byte* pData = data)
+                    Buffer.MemoryCopy(pData, ptr, position, position);
+
+                ptr += position;
+            }
+
+            return position;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

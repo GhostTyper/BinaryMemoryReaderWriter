@@ -62,5 +62,27 @@ namespace UnitTests
             foreach (byte b in stream.ToArray())
                 Assert.AreEqual(b, 0xAA, "Wrong Byte in data.");
         }
+
+
+        [TestMethod]
+        public unsafe void ToPointer()
+        {
+            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+            for (int i = 0; i < 20000000; i++)
+                writer.Write((byte)0xAA);
+
+            byte[] data = new byte[20000000];
+
+            int size;
+
+            fixed (byte* pData = data)
+                size = (int)writer.ToPointer(pData);
+
+            Assert.AreEqual(size, 20000000, "Wrong length of generated data.");
+
+            foreach (byte b in data)
+                Assert.AreEqual(b, 0xAA, "Wrong Byte in data.");
+        }
     }
 }

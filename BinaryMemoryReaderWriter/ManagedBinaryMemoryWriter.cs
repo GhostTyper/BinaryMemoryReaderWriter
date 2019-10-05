@@ -335,5 +335,47 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             return (int)size;
         }
+
+        /// <summary>
+        /// Saves writer content to the given pointer.
+        /// </summary>
+        /// <param name="ptr">The Pointer we write to.</param>
+        /// <returns>The amount of bytes written.</returns>
+        public unsafe long ToPointer(byte* ptr)
+        {
+            long size = 0;
+            ManagedBinaryMemoryWriterSegment segment = this.segment;
+
+            while (segment != null)
+            {
+                size += segment.ToPointer(ref ptr);
+
+                segment = segment.Next;
+            }
+
+            return (int)size;
+        }
+
+        /// <summary>
+        /// Returns the size of the data in the writer.
+        /// </summary>
+        public long Size
+        {
+            get
+            {
+                long size = 0;
+
+                ManagedBinaryMemoryWriterSegment segment = this.segment;
+
+                while (segment != null)
+                {
+                    size += segment.Length;
+
+                    segment = segment.Next;
+                }
+
+                return size;
+            }
+        }
     }
 }
