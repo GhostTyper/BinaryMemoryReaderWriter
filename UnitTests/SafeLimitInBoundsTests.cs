@@ -90,6 +90,46 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void CutJumpLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(new byte[32]);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+                BinaryMemoryReader cutReader = reader;
+
+                try
+                {
+                    cutReader = reader.Cut(32);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    cutReader.Jump(32);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void BooleanLimits()
         {
             byte[] data;
