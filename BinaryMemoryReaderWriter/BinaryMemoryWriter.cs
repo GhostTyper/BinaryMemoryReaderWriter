@@ -171,6 +171,20 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes a boolean.
+        /// </summary>
+        /// <param name="data">The byte to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(bool data)
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            *position++ = data ? (byte)0xFF : (byte)0x00;
+            size--;
+        }
+
+        /// <summary>
         /// Writes a byte.
         /// </summary>
         /// <param name="data">The byte to write.</param>

@@ -205,6 +205,19 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Reads a boolean.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ReadBoolean()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            size--;
+            return *position++ != 0x00;
+        }
+
+        /// <summary>
         /// Reads a byte.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -619,6 +632,18 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public string PeekVanillaStringNonNull(int bytes)
         {
             return PeekVanillaString(bytes) ?? "";
+        }
+
+        /// <summary>
+        /// Peeks a boolean.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool PeekBoolean()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            return *position != 0x00;
         }
 
         /// <summary>

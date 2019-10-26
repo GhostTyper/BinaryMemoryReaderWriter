@@ -178,6 +178,23 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes a bool.
+        /// </summary>
+        /// <param name="data">The vool to write.</param>
+        public void Write(bool data)
+        {
+            if (size < 1)
+            {
+                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
+                Next.Write(data);
+                return;
+            }
+
+            this.data[position++] = data ? (byte)0xFF : (byte)0x00;
+            size--;
+        }
+
+        /// <summary>
         /// Writes a byte.
         /// </summary>
         /// <param name="data">The byte to write.</param>

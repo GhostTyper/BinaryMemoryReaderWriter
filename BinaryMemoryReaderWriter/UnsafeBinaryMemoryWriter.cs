@@ -92,6 +92,16 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public byte* Position => position;
 
         /// <summary>
+        /// Writes a boolean.
+        /// </summary>
+        /// <param name="data">The boolean to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(bool data)
+        {
+            *position++ = data ? (byte)0xFF : (byte)0x00;
+        }
+
+        /// <summary>
         /// Writes a byte.
         /// </summary>
         /// <param name="data">The byte to write.</param>

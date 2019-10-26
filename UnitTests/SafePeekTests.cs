@@ -76,6 +76,29 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void BooleanPeek()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 16; count < 256; count++)
+                        writer.Write(count % 2 == 0);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                for (int count = 16; count < 256; count++)
+                    Assert.AreEqual(reader.PeekBoolean(), true, "BinaryMemoryReader Boolean incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
         public unsafe void BytePeek()
         {
             byte[] data;

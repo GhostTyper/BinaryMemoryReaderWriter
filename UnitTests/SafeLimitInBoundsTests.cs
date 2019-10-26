@@ -90,6 +90,45 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void BooleanLimits()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    writer.Write(true);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                try
+                {
+                    reader.ReadBoolean();
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                try
+                {
+                    writer.Write(true);
+                }
+                catch
+                {
+                    Assert.Fail("Should not have thrown an Exception.");
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void ByteLimits()
         {
             byte[] data;

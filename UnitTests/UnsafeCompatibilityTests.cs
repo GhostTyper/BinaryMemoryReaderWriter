@@ -135,6 +135,48 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void BooleanWrite()
+        {
+            byte[] data = new byte[256];
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryWriter writer = new UnsafeBinaryMemoryWriter(pData);
+
+                for (int count = 0; count < 256; count++)
+                    writer.Write(count % 2 == 0);
+            }
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadBoolean(), count % 2 == 0, "UnsafeBinaryMemoryWriter Boolean incompatible to BinaryWriter.");
+        }
+
+        [TestMethod]
+        public unsafe void BooleanRead()
+        {
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                    for (int count = 0; count < 256; count++)
+                        writer.Write(count % 2 == 0);
+
+                data = ms.ToArray();
+            }
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                for (int count = 0; count < 256; count++)
+                    Assert.AreEqual(reader.ReadBoolean(), count % 2 == 0, "UnsafeBinaryMemoryReader Boolean incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
         public unsafe void ByteWrite()
         {
             byte[] data = new byte[256];

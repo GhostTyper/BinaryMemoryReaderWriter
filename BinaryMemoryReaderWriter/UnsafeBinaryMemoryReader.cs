@@ -128,6 +128,15 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public byte* Position => position;
 
         /// <summary>
+        /// Reads a bool.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool ReadBoolean()
+        {
+            return *position++ != 0x00;
+        }
+
+        /// <summary>
         /// Reads a byte.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -386,6 +395,15 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public string PeekVanillaStringNonNull(int bytes)
         {
             return ReadVanillaString(bytes) ?? "";
+        }
+
+        /// <summary>
+        /// Peeks a boolean.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool PeekBoolean()
+        {
+            return *position != 0x00;
         }
 
         /// <summary>

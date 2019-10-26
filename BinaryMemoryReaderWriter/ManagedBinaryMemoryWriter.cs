@@ -52,6 +52,16 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes a boolean.
+        /// </summary>
+        /// <param name="data">The byte to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(bool data)
+        {
+            currentSegment.Write(data);
+        }
+
+        /// <summary>
         /// Writes a byte.
         /// </summary>
         /// <param name="data">The byte to write.</param>
