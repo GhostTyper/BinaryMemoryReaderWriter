@@ -244,6 +244,22 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Cuts a sub reader at the current position with the specified length.
+        /// </summary>
+        /// <param name="size">The size of the new reader.</param>
+        /// <returns>The new reader.</returns>
+        public BinaryMemoryReader Cut(int size)
+        {
+            if (this.size < size)
+                throw new OutOfMemoryException(spaceError);
+
+            position += size;
+            this.size -= size;
+
+            return new BinaryMemoryReader(position - size, size);
+        }
+
+        /// <summary>
         /// Jumps step bytes forward.
         /// </summary>
         /// <param name="step">The amount of bytes to jump.</param>

@@ -113,6 +113,18 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Cuts a sub reader at the current position with the specified length.
+        /// </summary>
+        /// <param name="size">The size of the cut.</param>
+        /// <returns>The new reader.</returns>
+        public UnsafeBinaryMemoryReader Cut(int size)
+        {
+            position += size;
+
+            return new UnsafeBinaryMemoryReader(position - size);
+        }
+
+        /// <summary>
         /// Jumps step bytes forward.
         /// </summary>
         /// <param name="step">The amount of bytes to jump.</param>
