@@ -7,24 +7,47 @@ using System.Text;
 
 namespace SharpFast.BinaryMemoryReaderWriter
 {
-    class ManagedBinaryMemoryWriterSegment
+    /// <summary>
+    /// A segment in the binary memory writer.
+    /// </summary>
+    public class ManagedBinaryMemoryWriterSegment
     {
+        /// <summary>
+        /// The writer this segment belongs to.
+        /// </summary>
         public readonly ManagedBinaryMemoryWriter writer;
-        public ManagedBinaryMemoryWriterSegment Next;
+
+        internal ManagedBinaryMemoryWriterSegment next;
 
         private readonly byte[] data;
         private int position;
         private int size;
 
-        public ManagedBinaryMemoryWriterSegment(ManagedBinaryMemoryWriter writer, int size)
+        internal ManagedBinaryMemoryWriterSegment(ManagedBinaryMemoryWriter writer, int size)
         {
             this.writer = writer;
             data = new byte[size];
             this.size = size;
-            writer.MoveSegment(this);
         }
 
+        /// <summary>
+        /// The length of this segment.
+        /// </summary>
         public int Length => position;
+
+        /// <summary>
+        /// The next writer in the list.
+        /// </summary>
+        public ManagedBinaryMemoryWriterSegment Next => next;
+
+        /// <summary>
+        /// Finishes the current segment. (Updates all counters, etc.) You shouldn't write to this segment
+        /// any more after finishing it and you should only Finish() segments you borrowed from CreateInsert().
+        /// </summary>
+        public void Finish()
+        {
+            writer.length += position;
+        }
 
         /// <summary>
         /// Writes a string in UTF-8 encoding with 7 bit encoded length prefix.
@@ -36,8 +59,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < 1)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                    Next.Write(text);
+                    writer.Flush();
+                    next.Write(text);
                     return;
                 }
 
@@ -53,8 +76,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 1)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                    Next.Write(text);
+                    writer.Flush();
+                    next.Write(text);
                     return;
                 }
 
@@ -70,8 +93,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 2)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, length + 1024);
-                    Next.Write(text);
+                    writer.Flush(length + 1024);
+                    next.Write(text);
                     return;
                 }
 
@@ -88,8 +111,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 3)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, length + 1024);
-                    Next.Write(text);
+                    writer.Flush(length + 1024);
+                    next.Write(text);
                     return;
                 }
 
@@ -107,8 +130,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 4)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, length + 1024);
-                    Next.Write(text);
+                    writer.Flush(length + 1024);
+                    next.Write(text);
                     return;
                 }
 
@@ -127,8 +150,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 5)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, length + 5);
-                    Next.Write(text);
+                    writer.Flush(length + 5);
+                    next.Write(text);
                     return;
                 }
 
@@ -162,8 +185,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < requiredSize)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, requiredSize + 1024);
-                Next.Write(text);
+                writer.Flush(requiredSize + 1024);
+                next.Write(text);
                 return requiredSize;
             }
 
@@ -185,8 +208,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 1)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -202,8 +225,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 1)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -219,8 +242,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 1)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -239,8 +262,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 2)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -259,8 +282,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 2)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -279,8 +302,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 3)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -301,8 +324,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 4)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -321,8 +344,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 4)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -341,8 +364,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -361,8 +384,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -383,8 +406,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < 1)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                    Next.Write(data);
+                    writer.Flush();
+                    next.Write(data);
                     return;
                 }
 
@@ -399,8 +422,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < 2)
                 {
-                    Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                    Next.Write(data);
+                    writer.Flush();
+                    next.Write(data);
                     return;
                 }
 
@@ -414,8 +437,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < 3)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -434,8 +457,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 4)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -454,8 +477,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -474,8 +497,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -494,8 +517,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -514,8 +537,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 16)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, 1024);
-                Next.Write(data);
+                writer.Flush();
+                next.Write(data);
                 return;
             }
 
@@ -556,8 +579,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < count)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, count > 1024 ? count : 1024);
-                Next.WriteBytes(data, offset, count);
+                writer.Flush(count > 1024 ? count : 1024);
+                next.WriteBytes(data, offset, count);
                 return;
             }
 
@@ -578,8 +601,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (length > size)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, length > 1024 ? length : 1024);
-                Next.Fill(data, length);
+                writer.Flush(length > 1024 ? length : 1024);
+                next.Fill(data, length);
                 return;
             }
 
@@ -612,8 +635,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (length > size)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, length > 1024 ? length : 1024);
-                Next.Fill(rng, length);
+                writer.Flush(length > 1024 ? length : 1024);
+                next.Fill(rng, length);
                 return;
             }
 
@@ -636,8 +659,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (length > size)
             {
-                Next = new ManagedBinaryMemoryWriterSegment(writer, length > 1024 ? length : 1024);
-                Next.Fill(rng, length);
+                writer.Flush(length > 1024 ? length : 1024);
+                next.Fill(rng, length);
                 return;
             }
 
@@ -648,7 +671,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ToArray(byte[] data, ref int position)
+        internal void ToArray(byte[] data, ref int position)
         {
             if (this.position > 0)
             {
@@ -658,7 +681,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe long ToPointer(ref byte* ptr)
+        internal unsafe long ToPointer(ref byte* ptr)
         {
             if (position > 0)
             {
@@ -672,7 +695,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ToStream(Stream stream)
+        internal int ToStream(Stream stream)
         {
             if (position > 0)
                 stream.Write(data, 0, position);

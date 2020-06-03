@@ -450,7 +450,7 @@ namespace UnitTests
                 {
                     char c = reader.ReadChar();
 
-                    Assert.AreEqual(c, (char)count, $"BinaryMemoryWriter Char incompatible to BinaryWriter: 0x{count.ToString("X04")} != 0x{((int)c).ToString("X04")}.");
+                    Assert.AreEqual(c, (char)count, $"BinaryMemoryWriter Char incompatible to BinaryWriter: 0x{count:X04} != 0x{(int)c:X04}.");
                 }
         }
 
@@ -639,17 +639,17 @@ namespace UnitTests
 
             ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
 
-            for (int count = 0; count < 256; count++)
-                writer.WriteBytes(src, 0, 1024);
+            for (int count = 1; count < 1024; count++)
+                writer.WriteBytes(src, 0, 1024 - count);
 
             using (MemoryStream ms = new MemoryStream(writer.ToArray()))
             {
                 using (BinaryReader reader = new BinaryReader(ms))
-                    for (int count = 0; count < 256; count++)
+                    for (int count = 1; count < 1024; count++)
                     {
-                        chk = reader.ReadBytes(1024);
+                        chk = reader.ReadBytes(1024 - count);
 
-                        for (int position = 0; position < 1024; position++)
+                        for (int position = 0; position < 1024 - count; position++)
                             Assert.AreEqual(chk[position], src[position], $"Invalid content at position {position}.");
                     }
             }

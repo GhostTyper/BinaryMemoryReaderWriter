@@ -15,6 +15,8 @@ namespace SharpFast.BinaryMemoryReaderWriter
         private readonly ManagedBinaryMemoryWriterSegment segment;
         private ManagedBinaryMemoryWriterSegment currentSegment;
 
+        internal long length;
+
         /// <summary>
         /// Instantiates a managed binary memory writer.
         /// </summary>
@@ -24,10 +26,16 @@ namespace SharpFast.BinaryMemoryReaderWriter
             currentSegment = segment;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void MoveSegment(ManagedBinaryMemoryWriterSegment segment)
+        /// <summary>
+        /// Starts a new segment and updates all the counters.
+        /// </summary>
+        /// <param name="length">The length of the new segment.</param>
+        public void Flush(int length = 1024)
         {
-            currentSegment = segment;
+            length += currentSegment.Length;
+
+            currentSegment.next = new ManagedBinaryMemoryWriterSegment(this, length);
+            currentSegment = currentSegment.next;
         }
 
         /// <summary>
@@ -267,7 +275,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 size += segment.Length;
 
-                segment = segment.Next;
+                segment = segment.next;
             }
 
             if (size > 2147000000)
@@ -283,7 +291,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 segment.ToArray(data, ref position);
 
-                segment = segment.Next;
+                segment = segment.next;
             }
 
             return data;
@@ -304,7 +312,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 size += segment.ToStream(stream);
 
-                segment = segment.Next;
+                segment = segment.next;
             }
 
             return size;
@@ -326,7 +334,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 size += segment.Length;
 
-                segment = segment.Next;
+                segment = segment.next;
             }
 
             if (data.Length < size + offset)
@@ -340,7 +348,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 segment.ToArray(data, ref position);
 
-                segment = segment.Next;
+                segment = segment.next;
             }
 
             return (int)size;
@@ -360,7 +368,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 size += segment.ToPointer(ref ptr);
 
-                segment = segment.Next;
+                segment = segment.next;
             }
 
             return (int)size;
@@ -381,7 +389,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 {
                     size += segment.Length;
 
-                    segment = segment.Next;
+                    segment = segment.next;
                 }
 
                 return size;

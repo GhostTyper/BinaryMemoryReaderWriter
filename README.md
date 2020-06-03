@@ -78,7 +78,7 @@ unsafe
 }
 ```
 
-Storing the current location like this with one of the structs is quite effective because it's just making a copy of one pointer. Or in the case of the not `Unsafe` writer it's additionally the size which will be copied. Beware that `ManagesBinaryMemoryWriter` is a class.
+Storing the current location like this with one of the structs is quite effective because it's just making a copy of one pointer. Or in the case of the not `Unsafe` writer it's additionally the size which will be copied. Beware that `ManagedBinaryMemoryWriter` is a class.
 
 # What to consider?
 
