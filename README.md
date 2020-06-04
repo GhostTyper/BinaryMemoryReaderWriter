@@ -80,6 +80,27 @@ unsafe
 
 Storing the current location like this with one of the structs is quite effective because it's just making a copy of one pointer. Or in the case of the not `Unsafe` writer it's additionally the size which will be copied. Beware that `ManagedBinaryMemoryWriter` is a class.
 
+Since version 1.1 `ManagedBinaryMemoryWriter` also supports insertionpoints like the more complex scenario above:
+
+```csharp
+ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+writer.Write(1337); // Write something header like.
+
+// Store the current position in size. You have space of 2 bytes in this insertionpoint.
+ManagedBinaryMemoryWriterSegment size = writer.MakeInsertionpoint(2);
+
+// We don't need to make an additional free slot of 2 bytes.
+
+writer.Write(27392L); // Some other data.
+
+// Fill the previous slot with information which got available right now.
+size.Write((short)42);
+
+// We need to call finish on the insertion point so that all counters like writer.Length will be updated accordingly.
+size.Finish();
+```
+
 # What to consider?
 
 * Those readers and writers aren't classes (except `ManagedBinaryMemoryWriter`). They are structs. This means, you should pass them via the `ref` keyword, if you want to pass them to another method.

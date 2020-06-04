@@ -27,15 +27,52 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// The reported length of this writer. (May not contain the latest segment or insertionpoints until the call of Flash.
+        /// </summary>
+        public long Length => length + currentSegment.Length;
+
+        /// <summary>
         /// Starts a new segment and updates all the counters.
         /// </summary>
         /// <param name="length">The length of the new segment.</param>
         public void Flush(int length = 1024)
         {
-            length += currentSegment.Length;
+            this.length += currentSegment.Length;
 
             currentSegment.next = new ManagedBinaryMemoryWriterSegment(this, length);
             currentSegment = currentSegment.next;
+        }
+
+        internal void flush(ManagedBinaryMemoryWriterSegment initiator, int length = 1024)
+        {
+            if (initiator != currentSegment)
+                throw new InvalidOperationException("An insertionpoint can't increase in size.");
+
+            this.length += currentSegment.Length;
+
+            currentSegment.next = new ManagedBinaryMemoryWriterSegment(this, length);
+            currentSegment = currentSegment.next;
+        }
+
+        /// <summary>
+        /// Creates an insertionpoint to which you can write data AFTER you continued writing things to the writer itself.
+        /// 
+        /// You need to call finish onto the segment after you have finished writing to the insertionpoint.
+        /// </summary>
+        /// <param name="length">The amount of bytes you wanna write to.</param>
+        /// <returns>The segment for the insertion point.</returns>
+        public ManagedBinaryMemoryWriterSegment MakeInsertionpoint(int length)
+        {
+            this.length += currentSegment.Length;
+
+            currentSegment.next = new ManagedBinaryMemoryWriterSegment(this, length);
+
+            ManagedBinaryMemoryWriterSegment result = currentSegment.next;
+
+            result.next = new ManagedBinaryMemoryWriterSegment(this, 1024);
+            currentSegment = result.next;
+
+            return result;
         }
 
         /// <summary>
@@ -267,16 +304,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <returns>The array.</returns>
         public byte[] ToArray()
         {
-            long size = 0;
-
-            ManagedBinaryMemoryWriterSegment segment = this.segment;
-
-            while (segment != null)
-            {
-                size += segment.Length;
-
-                segment = segment.next;
-            }
+            long size = length + currentSegment.Length;
 
             if (size > 2147000000)
                 throw new OutOfMemoryException("Array buffers can't exceed 2147000000 bytes. Write to a stream, if you generated bigger data than the near 2 GiB limit.");
@@ -285,7 +313,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             int position = 0;
 
-            segment = this.segment;
+            ManagedBinaryMemoryWriterSegment segment = this.segment;
 
             while (segment != null)
             {
@@ -326,23 +354,14 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <returns></returns>
         public int ToArray(byte[] data, int offset)
         {
-            long size = 0;
-
-            ManagedBinaryMemoryWriterSegment segment = this.segment;
-
-            while (segment != null)
-            {
-                size += segment.Length;
-
-                segment = segment.next;
-            }
+            long size = length + currentSegment.Length;
 
             if (data.Length < size + offset)
                 throw new ArgumentException("Not enough memory in data.", "data");
 
             int position = offset;
 
-            segment = this.segment;
+            ManagedBinaryMemoryWriterSegment segment = this.segment;
 
             while (segment != null)
             {
@@ -372,28 +391,6 @@ namespace SharpFast.BinaryMemoryReaderWriter
             }
 
             return (int)size;
-        }
-
-        /// <summary>
-        /// Returns the size of the data in the writer.
-        /// </summary>
-        public long Size
-        {
-            get
-            {
-                long size = 0;
-
-                ManagedBinaryMemoryWriterSegment segment = this.segment;
-
-                while (segment != null)
-                {
-                    size += segment.Length;
-
-                    segment = segment.next;
-                }
-
-                return size;
-            }
         }
     }
 }

@@ -59,7 +59,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < 1)
                 {
-                    writer.Flush();
+                    writer.flush(this);
                     next.Write(text);
                     return;
                 }
@@ -76,7 +76,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 1)
                 {
-                    writer.Flush();
+                    writer.flush(this);
                     next.Write(text);
                     return;
                 }
@@ -93,7 +93,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 2)
                 {
-                    writer.Flush(length + 1024);
+                    writer.flush(this, length + 1024);
                     next.Write(text);
                     return;
                 }
@@ -111,7 +111,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 3)
                 {
-                    writer.Flush(length + 1024);
+                    writer.flush(this, length + 1024);
                     next.Write(text);
                     return;
                 }
@@ -130,7 +130,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 4)
                 {
-                    writer.Flush(length + 1024);
+                    writer.flush(this, length + 1024);
                     next.Write(text);
                     return;
                 }
@@ -150,7 +150,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < length + 5)
                 {
-                    writer.Flush(length + 5);
+                    writer.flush(this, length + 5);
                     next.Write(text);
                     return;
                 }
@@ -185,7 +185,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < requiredSize)
             {
-                writer.Flush(requiredSize + 1024);
+                writer.flush(this, requiredSize + 1024);
                 next.Write(text);
                 return requiredSize;
             }
@@ -208,7 +208,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 1)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -225,7 +225,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 1)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -242,7 +242,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 1)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -262,7 +262,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 2)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -282,7 +282,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 2)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -302,7 +302,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 3)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -324,7 +324,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 4)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -344,7 +344,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 4)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -364,7 +364,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -384,7 +384,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -406,7 +406,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < 1)
                 {
-                    writer.Flush();
+                    writer.flush(this);
                     next.Write(data);
                     return;
                 }
@@ -422,7 +422,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             {
                 if (size < 2)
                 {
-                    writer.Flush();
+                    writer.flush(this);
                     next.Write(data);
                     return;
                 }
@@ -437,7 +437,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < 3)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -457,7 +457,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 4)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -477,7 +477,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -497,7 +497,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -517,7 +517,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 8)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -537,7 +537,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (size < 16)
             {
-                writer.Flush();
+                writer.flush(this);
                 next.Write(data);
                 return;
             }
@@ -579,7 +579,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < count)
             {
-                writer.Flush(count > 1024 ? count : 1024);
+                writer.flush(this, count > 1024 ? count : 1024);
                 next.WriteBytes(data, offset, count);
                 return;
             }
@@ -601,7 +601,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (length > size)
             {
-                writer.Flush(length > 1024 ? length : 1024);
+                writer.flush(this, length > 1024 ? length : 1024);
                 next.Fill(data, length);
                 return;
             }
@@ -635,7 +635,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (length > size)
             {
-                writer.Flush(length > 1024 ? length : 1024);
+                writer.flush(this, length > 1024 ? length : 1024);
                 next.Fill(rng, length);
                 return;
             }
@@ -659,7 +659,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         {
             if (length > size)
             {
-                writer.Flush(length > 1024 ? length : 1024);
+                writer.flush(this, length > 1024 ? length : 1024);
                 next.Fill(rng, length);
                 return;
             }

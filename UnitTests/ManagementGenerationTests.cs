@@ -38,7 +38,7 @@ namespace UnitTests
 
             int size = writer.ToArray(data, 0);
 
-            Assert.AreEqual(size, 20000000, "Wrong length of generated data.");
+            Assert.AreEqual(20000000, size, "Wrong length of generated data.");
 
             for (int position = 0; position < size; position++)
                 Assert.AreEqual(data[position], 0xAA, "Wrong Byte in data.");

@@ -4,6 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>SharpFast.BinaryMemoryReaderWriter</AssemblyName>
     <RootNamespace>SharpFast.BinaryMemoryReaderWriter</RootNamespace>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.0</Version>
+    <Company>Lukaseder Hard- uns Softwareentwicklung</Company>
+    <Copyright>Matthias Lukaseder</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
