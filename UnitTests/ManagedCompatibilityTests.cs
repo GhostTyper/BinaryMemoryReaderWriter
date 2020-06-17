@@ -437,6 +437,41 @@ namespace UnitTests
         //}
 
         [TestMethod]
+        public unsafe void SevenBitEncoded()
+        {
+            byte[] data;
+
+            List<KeyValuePair<ulong, int>> pairs = new List<KeyValuePair<ulong, int>>();
+
+            pairs.Add(new KeyValuePair<ulong, int>(0L, 1));
+
+            for (int d = 1; d < 10; d++)
+            {
+                pairs.Add(new KeyValuePair<ulong, int>((1UL << (d * 7)) - 1, d));
+                pairs.Add(new KeyValuePair<ulong, int>(1UL << (d * 7), d + 1));
+            }
+
+            pairs.Add(new KeyValuePair<ulong, int>(ulong.MaxValue, 10));
+
+            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
+
+            for (int c = 0; c < 40; c++)
+                foreach (KeyValuePair<ulong, int> pair in pairs)
+                    writer.Write7BitEncoded(pair.Key);
+
+            data = writer.ToArray();
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                for (int c = 0; c < 40; c++)
+                    foreach (KeyValuePair<ulong, int> pair in pairs)
+                        Assert.AreEqual(pair.Key, reader.Read7BitEncoded(), $"Didn't read what i've wrote with {pair.Key}, turn {c}.");
+            }
+        }
+
+        [TestMethod]
         public unsafe void CharWrite()
         {
             ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();

@@ -176,7 +176,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
-        /// Reads a string encoded in UTF-8.
+        /// Reads a string encoded in UTF-8 without leading length and without NUL-termination.
         /// </summary>
         /// <returns>The string.</returns>
         /// <remarks>Returns null if the string is empty.</remarks>
@@ -195,7 +195,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
-        /// Reads a string encoded in UTF-8.
+        /// Reads a string encoded in UTF-8 without leading length and without NUL-termination.
         /// </summary>
         /// <returns>The string.</returns>
         /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
@@ -367,6 +367,35 @@ namespace SharpFast.BinaryMemoryReaderWriter
             position += 8;
 
             return *(ulong*)(position - 8);
+        }
+
+        /// <summary>
+        /// Reads a 7 bit encoded number.
+        /// </summary>
+        public ulong Read7BitEncoded()
+        {
+            ulong result = 0;
+            int shift = 0;
+
+            byte* start = position;
+            int startSize = size;
+
+            do
+            {
+                result |= (ulong)(*position & 0x7F) << shift;
+                shift += 7;
+                size--;
+
+                if (size < 0)
+                {
+                    position = start;
+                    size = startSize;
+
+                    throw new OutOfMemoryException(spaceError);
+                }
+            } while ((*position++ & 0x80) != 0x00);
+
+            return result;
         }
 
         /// <summary>
@@ -625,7 +654,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
-        /// Peeks a string encoded in UTF-8.
+        /// Peeks a string encoded in UTF-8 without leading length and without NUL-termination.
         /// </summary>
         /// <returns>The string.</returns>
         /// <remarks>Returns null if the string is empty.</remarks>
@@ -641,7 +670,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
-        /// Peeks a string encoded in UTF-8.
+        /// Peeks a string encoded in UTF-8 without leading length and without NUL-termination.
         /// </summary>
         /// <returns>The string.</returns>
         /// <remarks>Returns an empty string if the string is empty and not null.</remarks>
@@ -756,6 +785,39 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 throw new OutOfMemoryException(spaceError);
 
             return *(ulong*)position;
+        }
+
+
+        /// <summary>
+        /// Peeks a 7 bit encoded number.
+        /// </summary>
+        public ulong Peek7BitEncoded()
+        {
+            ulong result = 0;
+            int shift = 0;
+
+            byte* start = position;
+            int startSize = size;
+
+            do
+            {
+                result |= (ulong)(*position & 0x7F) << shift;
+                shift += 7;
+                size--;
+
+                if (size < 0)
+                {
+                    position = start;
+                    size = startSize;
+
+                    throw new OutOfMemoryException(spaceError);
+                }
+            } while ((*position++ & 0x80) != 0x00);
+
+            position = start;
+            size = startSize;
+
+            return result;
         }
 
         /// <summary>

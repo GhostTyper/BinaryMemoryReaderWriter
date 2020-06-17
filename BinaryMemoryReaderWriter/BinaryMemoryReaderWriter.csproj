@@ -4,11 +4,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>SharpFast.BinaryMemoryReaderWriter</AssemblyName>
     <RootNamespace>SharpFast.BinaryMemoryReaderWriter</RootNamespace>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>1.1.0</Version>
-    <Company>Lukaseder Hard- uns Softwareentwicklung</Company>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.1</Version>
+    <Company>Lukaseder Hard- und Softwareentwicklung</Company>
     <Copyright>Matthias Lukaseder</Copyright>
+    <Description>High performance memory readers/writers.</Description>
+    <PackageProjectUrl>https://github.com/GhostTyper/BinaryMemoryReaderWriter</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/GhostTyper/BinaryMemoryReaderWriter.git</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

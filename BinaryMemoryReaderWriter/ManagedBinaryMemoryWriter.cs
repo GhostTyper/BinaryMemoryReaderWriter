@@ -86,7 +86,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
-        /// Writes a string in UTF-8 encoding.
+        /// Writes a string in UTF-8 encoding without leading length and without NUL-termination.
         /// </summary>
         /// <param name="text">The string to write.</param>
         /// <returns>The number of bytes written.</returns>
@@ -194,6 +194,15 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public void Write(long data)
         {
             currentSegment.Write(data);
+        }
+
+        /// <summary>
+        /// Writes an ulong 7 bit encoded.
+        /// </summary>
+        /// <param name="data">The long to write.</param>
+        public void Write7BitEncoded(ulong data)
+        {
+            currentSegment.Write7BitEncoded(data);
         }
 
         /// <summary>

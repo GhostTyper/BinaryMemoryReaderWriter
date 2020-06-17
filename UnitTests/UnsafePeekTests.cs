@@ -285,6 +285,48 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void SevenBitEncodedPeek()
+        {
+            byte[] data;
+
+            List<KeyValuePair<ulong, int>> pairs = new List<KeyValuePair<ulong, int>>();
+
+            pairs.Add(new KeyValuePair<ulong, int>(0L, 1));
+
+            for (int d = 1; d < 10; d++)
+            {
+                pairs.Add(new KeyValuePair<ulong, int>((1UL << (d * 7)) - 1, d));
+                pairs.Add(new KeyValuePair<ulong, int>(1UL << (d * 7), d + 1));
+            }
+
+            pairs.Add(new KeyValuePair<ulong, int>(ulong.MaxValue, 10));
+
+            foreach (KeyValuePair<ulong, int> pair in pairs)
+            {
+                data = new byte[pair.Value];
+
+                fixed (byte* pData = data)
+                {
+                    UnsafeBinaryMemoryWriter writer = new UnsafeBinaryMemoryWriter(pData);
+
+                    writer.Write7BitEncoded(pair.Key);
+
+                    UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                    try
+                    {
+                        Assert.AreEqual(pair.Key, reader.Peek7BitEncoded(), $"Didn't read what i've wrote with {pair.Key}.");
+                        Assert.AreEqual(pair.Key, reader.Peek7BitEncoded(), $"Didn't read what i've wrote with {pair.Key}.");
+                    }
+                    catch
+                    {
+                        Assert.Fail($"Should not have thrown an Exception, but did with {pair.Key}.");
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void CharPeek()
         {
             byte[] data;

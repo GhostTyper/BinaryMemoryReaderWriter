@@ -172,7 +172,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
-        /// Writes a string in UTF-8 encoding.
+        /// Writes a string in UTF-8 encoding without leading length and without NUL-termination.
         /// </summary>
         /// <param name="text">The string to write.</param>
         /// <returns>The number of bytes written.</returns>
@@ -374,6 +374,43 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             position += 8;
             size -= 8;
+        }
+
+        /// <summary>
+        /// Writes an unsigned number 7 bit encoded. (variable length.)
+        /// </summary>
+        /// <param name="data">The unsigned long to write 7 bit encoded.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void Write7BitEncoded(ulong data)
+        {
+            byte* result = stackalloc byte[10];
+
+            byte* position = result;
+
+            ulong secForNextArray = data;
+
+            while (data >= 0x80)
+            {
+                *position++ = (byte)(data | 0x80);
+                data >>= 7;
+            }
+
+            *position++ = (byte)data;
+
+            int length = (int)(position - result);
+
+            if (size < length)
+            {
+                writer.flush(this);
+                next.Write7BitEncoded(secForNextArray);
+                return;
+            }
+
+            fixed (byte* bData = this.data)
+                Buffer.MemoryCopy(result, bData + this.position, size, length);
+
+            this.position += length;
+            size -= length;
         }
 
         /// <summary>

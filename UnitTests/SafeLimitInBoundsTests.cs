@@ -481,6 +481,47 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void SevenBitEncodedLimits()
+        {
+            byte[] data;
+
+            List<KeyValuePair<ulong, int>> pairs = new List<KeyValuePair<ulong, int>>();
+
+            pairs.Add(new KeyValuePair<ulong, int>(0L, 1));
+
+            for (int d = 1; d < 10; d++)
+            {
+                pairs.Add(new KeyValuePair<ulong, int>((1UL << (d * 7)) - 1, d));
+                pairs.Add(new KeyValuePair<ulong, int>(1UL << (d * 7), d + 1));
+            }
+
+            pairs.Add(new KeyValuePair<ulong, int>(ulong.MaxValue, 10));
+
+            foreach (KeyValuePair<ulong, int> pair in pairs)
+            {
+                data = new byte[pair.Value];
+
+                fixed (byte* pData = data)
+                {
+                    BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, pair.Value);
+
+                    writer.Write7BitEncoded(pair.Key);
+
+                    BinaryMemoryReader reader = new BinaryMemoryReader(pData, pair.Value);
+
+                    try
+                    {
+                        Assert.AreEqual(pair.Key, reader.Read7BitEncoded(), $"Didn't read what i've wrote with {pair.Key}.");
+                    }
+                    catch
+                    {
+                        Assert.Fail($"Should not have thrown an Exception, but did with {pair.Key}.");
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public unsafe void CharLimits()
         {
             byte[] data;
