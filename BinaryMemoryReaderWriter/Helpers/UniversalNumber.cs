@@ -16,7 +16,7 @@ namespace SharpFast.Helpers
         /// The kind of the raw data type.
         /// </summary>
         public readonly NumberKind Kind;
-        
+
         private fixed byte raw[16];
 
         /// <summary>
@@ -338,6 +338,63 @@ namespace SharpFast.Helpers
                 }
         }
 
+        public static UniversalNumber operator +(UniversalNumber l, UniversalNumber r)
+        {
+
+
+            return new UniversalNumber();
+        }
+
+        public static bool operator ==(UniversalNumber l, float r)
+        {
+            return l == new UniversalNumber(r);
+        }
+
+        public static bool operator !=(UniversalNumber l, float r)
+        {
+            return l != new UniversalNumber(r);
+        }
+
+        public static bool operator ==(UniversalNumber l, double r)
+        {
+            return l == new UniversalNumber(r);
+        }
+
+        public static bool operator !=(UniversalNumber l, double r)
+        {
+            return l != new UniversalNumber(r);
+        }
+
+        public static bool operator ==(UniversalNumber l, decimal r)
+        {
+            return l == new UniversalNumber(r);
+        }
+
+        public static bool operator !=(UniversalNumber l, decimal r)
+        {
+            return l != new UniversalNumber(r);
+        }
+
+        public static bool operator ==(UniversalNumber l, int r)
+        {
+            return l == new UniversalNumber(r);
+        }
+
+        public static bool operator !=(UniversalNumber l, int r)
+        {
+            return l != new UniversalNumber(r);
+        }
+
+        public static bool operator ==(UniversalNumber l, uint r)
+        {
+            return l == new UniversalNumber(r);
+        }
+
+        public static bool operator !=(UniversalNumber l, uint r)
+        {
+            return l != new UniversalNumber(r);
+        }
+
         /// <summary>
         /// Compares two numbers.
         /// </summary>
@@ -362,6 +419,93 @@ namespace SharpFast.Helpers
                         throw new InvalidDataException("This structure is invalid.");
                 }
 
+            switch (l.Kind)
+            {
+                case NumberKind.SignedInteger:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            if (*(long*)l.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw == *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(long*)l.raw == *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(long*)l.raw == *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return *(long*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.UnsignedInteger:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(long*)l.raw == *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            if (*(long*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw == *(long*)r.raw;
+                        case NumberKind.Single:
+                            if (*(long*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw == *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            if (*(long*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.Single:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(float*)l.raw == *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(float*)l.raw == *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(float*)l.raw == *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return (decimal)*(float*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.Double:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(double*)l.raw == *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(double*)l.raw == *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(double*)l.raw == *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return (decimal)*(double*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.Decimal:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(decimal*)l.raw == *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(decimal*)l.raw == *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(decimal*)l.raw == (decimal)*(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return *(decimal*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+
+            }
+
             return false;
         }
 
@@ -373,7 +517,109 @@ namespace SharpFast.Helpers
         /// <returns>true, if l and r are unequal.</returns>
         public static bool operator !=(UniversalNumber l, UniversalNumber r)
         {
-            return true;
+            if (l.Kind == r.Kind)
+                switch (l.Kind)
+                {
+                    case NumberKind.SignedInteger:
+                    case NumberKind.UnsignedInteger:
+                        return *(long*)l.raw == *(long*)r.raw;
+                    case NumberKind.Single:
+                        return *(float*)l.raw == *(float*)r.raw;
+                    case NumberKind.Double:
+                        return *(double*)l.raw == *(double*)r.raw;
+                    case NumberKind.Decimal:
+                        return new decimal(new int[] { *(int*)l.raw, *(int*)(l.raw + 4), *(int*)(l.raw + 8), *(int*)(l.raw + 12) }) == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                    default:
+                        throw new InvalidDataException("This structure is invalid.");
+                }
+
+            switch (l.Kind)
+            {
+                case NumberKind.SignedInteger:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            if (*(long*)l.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw != *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(long*)l.raw != *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(long*)l.raw != *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return *(long*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.UnsignedInteger:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(long*)l.raw != *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            if (*(long*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw != *(long*)r.raw;
+                        case NumberKind.Single:
+                            if (*(long*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw != *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            if (*(long*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.Single:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(float*)l.raw != *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(float*)l.raw != *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(float*)l.raw != *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return (decimal)*(float*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.Double:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(double*)l.raw != *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(double*)l.raw != *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(double*)l.raw != *(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return (decimal)*(double*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+                case NumberKind.Decimal:
+                    switch (r.Kind)
+                    {
+                        case NumberKind.UnsignedInteger:
+                            return *(decimal*)l.raw != *(long*)r.raw;
+                        case NumberKind.SignedInteger:
+                            return *(decimal*)l.raw != *(long*)r.raw;
+                        case NumberKind.Single:
+                            return *(decimal*)l.raw != (decimal)*(float*)r.raw;
+                        case NumberKind.Decimal:
+                            return *(decimal*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                        default:
+                            throw new InvalidDataException("This structure is invalid.");
+                    }
+            }
+
+            return false;
         }
 
         /// <summary>
