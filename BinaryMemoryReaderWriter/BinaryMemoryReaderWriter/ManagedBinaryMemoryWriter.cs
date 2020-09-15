@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpFast.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
     /// <summary>
     /// Represents a managed binary writer which will also automatically manage it's memory.
     /// </summary>
-    public class ManagedBinaryMemoryWriter
+    public class ManagedBinaryMemoryWriter : IWriter
     {
         private readonly ManagedBinaryMemoryWriterSegment segment;
         private ManagedBinaryMemoryWriterSegment currentSegment;
@@ -305,6 +306,15 @@ namespace SharpFast.BinaryMemoryReaderWriter
         public void Fill(RNGCryptoServiceProvider rng, int length)
         {
             currentSegment.Fill(rng, length);
+        }
+
+        /// <summary>
+        /// Write an UniversalNumber.
+        /// </summary>
+        /// <param name="number">The UniversalNumber to write.</param>
+        public void Write(UniversalNumber number)
+        {
+            currentSegment.Write(number);
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SharpFast.Helpers;
+using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,7 +11,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
     /// An UNSAFE binary memory writer. This class can be used to write binary data to a pointer.
     /// </summary>
     /// <remarks>Use this class only if you are sure that you won't write over the memory border.</remarks>
-    public unsafe struct UnsafeBinaryMemoryWriter
+    public unsafe struct UnsafeBinaryMemoryWriter : IWriter
     {
         private byte* position;
 
@@ -384,6 +386,80 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 Buffer.MemoryCopy(bRData, position, length, rData.Length);
 
             position += length;
+        }
+
+        /// <summary>
+        /// Write an UniversalNumber.
+        /// </summary>
+        /// <param name="number">The UniversalNumber to write.</param>
+        public void Write(UniversalNumber number)
+        {
+            switch (number.Kind)
+            {
+                case Helpers.NumberKind.SignedInteger:
+                    long lv = number.AsLong();
+
+                    if (lv < 0)
+                    {
+                        *position++ = (byte)Helpers.NumberKind.NegativeSignedInterger;
+                        lv = -lv;
+                    }
+                    else
+                        *position++ = (byte)Helpers.NumberKind.SignedInteger;
+
+                    while (lv >= 0x80)
+                    {
+                        *position++ = (byte)(lv | 0x80);
+                        lv >>= 7;
+                    }
+
+                    *position++ = (byte)lv;
+                    break;
+                case Helpers.NumberKind.UnsignedInteger:
+                    ulong uv = number.AsULong();
+
+                    *position++ = (byte)Helpers.NumberKind.NegativeSignedInterger;
+
+                    while (uv >= 0x80)
+                    {
+                        *position++ = (byte)(uv | 0x80);
+                        uv >>= 7;
+                    }
+
+                    *position++ = (byte)uv;
+
+                    break;
+                case Helpers.NumberKind.Single:
+                    *position++ = (byte)Helpers.NumberKind.Single;
+
+                    *(float*)*position = number.AsFloat();
+
+                    position += 4;
+                    break;
+                case Helpers.NumberKind.Double:
+                    *position++ = (byte)Helpers.NumberKind.Double;
+
+                    *(double*)*position = number.AsDouble();
+
+                    position += 8;
+                    break;
+                case Helpers.NumberKind.Decimal:
+                    int[] values = decimal.GetBits(number.AsDecimal());
+
+                    *position++ = (byte)Helpers.NumberKind.Decimal;
+
+                    *(int*)position = values[0];
+                    position += 4;
+                    *(int*)position = values[1];
+                    position += 4;
+                    *(int*)position = values[2];
+                    position += 4;
+                    *(int*)position = values[3];
+                    position += 4;
+                    break;
+                default:
+                    throw new InvalidDataException("Unknown format in UniversalNumber.");
+            }
         }
     }
 }

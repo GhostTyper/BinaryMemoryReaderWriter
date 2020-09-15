@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpFast.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -706,6 +707,148 @@ namespace SharpFast.BinaryMemoryReaderWriter
             position += length;
             size -= length;
         }
+
+        /// <summary>
+        /// Write an UniversalNumber.
+        /// </summary>
+        /// <param name="number">The UniversalNumber to write.</param>
+        public unsafe void Write(UniversalNumber number)
+        {
+            switch (number.Kind)
+            {
+                case Helpers.NumberKind.SignedInteger:
+                    long lv = number.AsLong();
+
+                    byte* resultLv = stackalloc byte[11];
+
+                    byte* positionLv = resultLv;
+
+                    if (lv < 0)
+                    {
+                        *positionLv++ = (byte)Helpers.NumberKind.NegativeSignedInterger;
+                        lv = -lv;
+                    }
+                    else
+                        *positionLv++ = (byte)Helpers.NumberKind.SignedInteger;
+
+                    while (lv >= 0x80)
+                    {
+                        *positionLv++ = (byte)(lv | 0x80);
+                        lv >>= 7;
+                    }
+
+                    *positionLv++ = (byte)lv;
+
+                    int lengthLv = (int)(positionLv - resultLv);
+
+                    if (size < lengthLv)
+                    {
+                        writer.flush(this);
+                        next.Write(number);
+                        return;
+                    }
+
+                    fixed (byte* bData = data)
+                        Buffer.MemoryCopy(resultLv, bData + position, size, lengthLv);
+
+                    position += lengthLv;
+                    size -= lengthLv;
+
+                    break;
+                case Helpers.NumberKind.UnsignedInteger:
+                    ulong uv = number.AsULong();
+
+                    byte* resultUv = stackalloc byte[11];
+
+                    byte* positionUv = resultUv;
+
+                    *positionUv++ = (byte)Helpers.NumberKind.NegativeSignedInterger;
+
+                    while (uv >= 0x80)
+                    {
+                        *positionUv++ = (byte)(uv | 0x80);
+                        uv >>= 7;
+                    }
+
+                    *positionUv++ = (byte)uv;
+
+                    int lengthUv = (int)(positionUv - resultUv);
+
+                    if (size < lengthUv)
+                    {
+                        writer.flush(this);
+                        next.Write(number);
+                        return;
+                    }
+
+                    fixed (byte* bData = data)
+                        Buffer.MemoryCopy(resultUv, bData + position, size, lengthUv);
+
+                    position += lengthUv;
+                    size -= lengthUv;
+
+                    break;
+                case Helpers.NumberKind.Single:
+                    if (size < 5)
+                    {
+                        writer.flush(this);
+                        next.Write(number);
+                        return;
+                    }
+
+                    fixed (byte* bData = data)
+                    {
+                        *(bData + position) = (byte)Helpers.NumberKind.Single;
+                        *(float*)(bData + position + 1) = number.AsFloat();
+                    }
+
+                    position += 5;
+                    size -= 5;
+                    break;
+                case Helpers.NumberKind.Double:
+                    if (size < 9)
+                    {
+                        writer.flush(this);
+                        next.Write(number);
+                        return;
+                    }
+
+                    fixed (byte* bData = data)
+                    {
+                        *(bData + position) = (byte)Helpers.NumberKind.Single;
+                        *(double*)(bData + position + 1) = number.AsDouble();
+                    }
+
+                    position += 9;
+                    size -= 9;
+                    break;
+                case Helpers.NumberKind.Decimal:
+                    if (size < 17)
+                    {
+                        writer.flush(this);
+                        next.Write(number);
+                        return;
+                    }
+
+                    int[] values = decimal.GetBits(number.AsDecimal());
+
+                    fixed (byte* bData = data)
+                    {
+                        *(bData + position) = (byte)Helpers.NumberKind.Decimal;
+                        *(int*)(bData + position + 1) = values[0];
+                        *(int*)(bData + position + 5) = values[1];
+                        *(int*)(bData + position + 9) = values[2];
+                        *(int*)(bData + position + 13) = values[3];
+                    }
+
+                    position += 17;
+                    size -= 17;
+                    break;
+                default:
+                    throw new InvalidDataException("Unknown format in UniversalNumber.");
+            }
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ToArray(byte[] data, ref int position)

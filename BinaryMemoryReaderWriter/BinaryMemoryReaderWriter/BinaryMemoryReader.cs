@@ -8,7 +8,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
     /// <summary>
     /// A binary memory reader. This class can be used to read binary data from a pointer.
     /// </summary>
-    public unsafe struct BinaryMemoryReader
+    public unsafe struct BinaryMemoryReader : IReader
     {
         private byte* position;
         private int size;

@@ -12,26 +12,30 @@ namespace SharpFast.BinaryMemoryReaderWriter.Helpers
         /// <summary>
         /// The type is long.
         /// </summary>
-        SignedInteger,
+        SignedInteger = 0,
+        /// <summary>
+        /// The type is long and negative but transferred as positive.
+        /// </summary>
+        NegativeSignedInterger = 1,
         /// <summary>
         /// The type is ulong.
         /// </summary>
-        UnsignedInteger,
+        UnsignedInteger = 2,
         /// <summary>
         /// The type is half. (.NET 5.0)
         /// </summary>
-        Half,
+        Half = 16,
         /// <summary>
         /// The type is float.
         /// </summary>
-        Single,
+        Single = 17,
         /// <summary>
         /// The type is double.
         /// </summary>
-        Double,
+        Double = 18,
         /// <summary>
         /// The type is decimal.
         /// </summary>
-        Decimal
+        Decimal = 32
     }
 }

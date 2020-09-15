@@ -10,24 +10,7 @@ namespace PerformanceComparison
     {
         static unsafe void Main()
         {
-            ManagedBinaryMemoryWriter writer = new ManagedBinaryMemoryWriter();
-
-            writer.Write(1337); // Write something header like.
-
-            // Store the current position in size. You have space of 2 bytes in this insertionpoint.
-            ManagedBinaryMemoryWriterSegment size = writer.MakeInsertionpoint(2);
-
-            // We don't need to make an additional free slot of 2 bytes.
-
-            writer.Write(27392L); // Some other data.
-
-            // Fill the previous slot with information which got available right now.
-            size.Write((short)42);
-
-            // We need to call finish on the insertion point so that all counters like writer.Length will be updated accordingly.
-            size.Finish();
-
-            // BenchmarkRunner.Run<Program>();
+            BenchmarkRunner.Run<Program>();
         }
 
         public IEnumerable<byte[]> DataSource()

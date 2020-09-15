@@ -1,5 +1,7 @@
-﻿using System;
+﻿using SharpFast.Helpers;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,7 +11,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
     /// <summary>
     /// A binary memory writer. This class can be used to write binary data to a pointer.
     /// </summary>
-    public unsafe struct BinaryMemoryWriter
+    public unsafe struct BinaryMemoryWriter : IWriter
     {
         private byte* position;
         private int size;
@@ -651,6 +653,122 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             position += length;
             size -= length;
+        }
+
+        /// <summary>
+        /// Write an UniversalNumber.
+        /// </summary>
+        /// <param name="number">The UniversalNumber to write.</param>
+        public void Write(UniversalNumber number)
+        {
+            switch (number.Kind)
+            {
+                case Helpers.NumberKind.SignedInteger:
+                    long lv = number.AsLong();
+
+                    byte* resultLv = stackalloc byte[11];
+
+                    byte* positionLv = resultLv;
+
+                    if (lv < 0)
+                    {
+                        *positionLv++ = (byte)Helpers.NumberKind.NegativeSignedInterger;
+                        lv = -lv;
+                    }
+                    else
+                        *positionLv++ = (byte)Helpers.NumberKind.SignedInteger;
+
+                    while (lv >= 0x80)
+                    {
+                        *positionLv++ = (byte)(lv | 0x80);
+                        lv >>= 7;
+                    }
+
+                    *positionLv++ = (byte)lv;
+
+                    int lengthLv = (int)(positionLv - resultLv);
+
+                    if (size < lengthLv)
+                        throw new OutOfMemoryException(spaceError);
+
+                    Buffer.MemoryCopy(resultLv, position, size, lengthLv);
+
+                    position += lengthLv;
+                    size -= lengthLv;
+
+                    break;
+                case Helpers.NumberKind.UnsignedInteger:
+                    ulong uv = number.AsULong();
+
+                    byte* resultUv = stackalloc byte[11];
+
+                    byte* positionUv = resultUv;
+
+                    *positionUv++ = (byte)Helpers.NumberKind.NegativeSignedInterger;
+
+                    while (uv >= 0x80)
+                    {
+                        *positionUv++ = (byte)(uv | 0x80);
+                        uv >>= 7;
+                    }
+
+                    *positionUv++ = (byte)uv;
+
+                    int lengthUv = (int)(positionUv - resultUv);
+
+                    if (size < lengthUv)
+                        throw new OutOfMemoryException(spaceError);
+
+                    Buffer.MemoryCopy(resultUv, position, size, lengthUv);
+
+                    position += lengthUv;
+                    size -= lengthUv;
+
+                    break;
+                case Helpers.NumberKind.Single:
+                    if (size < 5)
+                        throw new OutOfMemoryException(spaceError);
+
+                    *(float*)*(position + 1) = number.AsFloat();
+
+                    *position = (byte)Helpers.NumberKind.Single;
+
+                    position += 5;
+                    size -= 5;
+                    break;
+                case Helpers.NumberKind.Double:
+                    if (size < 9)
+                        throw new OutOfMemoryException(spaceError);
+
+                    *(double*)*(position + 1) = number.AsDouble();
+
+                    *position = (byte)Helpers.NumberKind.Double;
+
+                    position += 9;
+                    size -= 9;
+                    break;
+                case Helpers.NumberKind.Decimal:
+                    if (size < 17)
+                        throw new OutOfMemoryException(spaceError);
+
+                    int[] values = decimal.GetBits(number.AsDecimal());
+
+                    *position++ = (byte)Helpers.NumberKind.Decimal;
+
+                    *(int*)position = values[0];
+                    position += 4;
+                    *(int*)position = values[1];
+                    position += 4;
+                    *(int*)position = values[2];
+                    position += 4;
+                    *(int*)position = values[3];
+                    position += 4;
+
+                    size -= 17;
+                    break;
+                default:
+                    throw new InvalidDataException("Unknown format in UniversalNumber.");
+            }
         }
     }
 }

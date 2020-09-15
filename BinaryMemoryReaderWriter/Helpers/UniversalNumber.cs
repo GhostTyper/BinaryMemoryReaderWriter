@@ -338,6 +338,102 @@ namespace SharpFast.Helpers
                 }
         }
 
+        /// <summary>
+        /// Returns the number as double.
+        /// </summary>
+        /// <returns>This number as double.</returns>
+        public double AsDouble()
+        {
+            fixed (byte* bpRaw = raw)
+                switch (Kind)
+                {
+                    case NumberKind.SignedInteger:
+                        return *(long*)bpRaw;
+                    case NumberKind.UnsignedInteger:
+                        return *(ulong*)bpRaw;
+                    case NumberKind.Single:
+                        return *(float*)bpRaw;
+                    case NumberKind.Double:
+                        return *(double*)bpRaw;
+                    case NumberKind.Decimal:
+                        return (double)new decimal(new int[] { *(int*)(bpRaw), *(int*)(bpRaw + 4), *(int*)(bpRaw + 8), *(int*)(bpRaw + 12) });
+                    default:
+                        throw new InvalidDataException("This structure is invalid.");
+                }
+        }
+
+        /// <summary>
+        /// Returns the number as float.
+        /// </summary>
+        /// <returns>This number as float.</returns>
+        public float AsFloat()
+        {
+            fixed (byte* bpRaw = raw)
+                switch (Kind)
+                {
+                    case NumberKind.SignedInteger:
+                        return *(long*)bpRaw;
+                    case NumberKind.UnsignedInteger:
+                        return *(ulong*)bpRaw;
+                    case NumberKind.Single:
+                        return *(float*)bpRaw;
+                    case NumberKind.Double:
+                        return (float)*(double*)bpRaw;
+                    case NumberKind.Decimal:
+                        return (float)new decimal(new int[] { *(int*)(bpRaw), *(int*)(bpRaw + 4), *(int*)(bpRaw + 8), *(int*)(bpRaw + 12) });
+                    default:
+                        throw new InvalidDataException("This structure is invalid.");
+                }
+        }
+
+        /// <summary>
+        /// Returns the number as long.
+        /// </summary>
+        /// <returns>This number as long.</returns>
+        public long AsLong()
+        {
+            fixed (byte* bpRaw = raw)
+                switch (Kind)
+                {
+                    case NumberKind.SignedInteger:
+                        return *(long*)bpRaw;
+                    case NumberKind.UnsignedInteger:
+                        return (long)*(ulong*)bpRaw;
+                    case NumberKind.Single:
+                        return (long)(*(float*)bpRaw + 0.5f);
+                    case NumberKind.Double:
+                        return (long)(*(double*)bpRaw + 0.5);
+                    case NumberKind.Decimal:
+                        return (long)new decimal(new int[] { *(int*)(bpRaw), *(int*)(bpRaw + 4), *(int*)(bpRaw + 8), *(int*)(bpRaw + 12) });
+                    default:
+                        throw new InvalidDataException("This structure is invalid.");
+                }
+        }
+
+        /// <summary>
+        /// Returns the number as ulong.
+        /// </summary>
+        /// <returns>This number as ulong.</returns>
+        public ulong AsULong()
+        {
+            fixed (byte* bpRaw = raw)
+                switch (Kind)
+                {
+                    case NumberKind.SignedInteger:
+                        return (ulong)*(long*)bpRaw;
+                    case NumberKind.UnsignedInteger:
+                        return *(ulong*)bpRaw;
+                    case NumberKind.Single:
+                        return (ulong)(*(float*)bpRaw + 0.5f);
+                    case NumberKind.Double:
+                        return (ulong)(*(double*)bpRaw + 0.5);
+                    case NumberKind.Decimal:
+                        return (ulong)new decimal(new int[] { *(int*)(bpRaw), *(int*)(bpRaw + 4), *(int*)(bpRaw + 8), *(int*)(bpRaw + 12) });
+                    default:
+                        throw new InvalidDataException("This structure is invalid.");
+                }
+        }
+
         public static UniversalNumber operator +(UniversalNumber l, UniversalNumber r)
         {
 
