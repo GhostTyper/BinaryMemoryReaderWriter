@@ -438,6 +438,8 @@ namespace SharpFast.Helpers
         {
 
 
+
+
             return new UniversalNumber();
         }
 
@@ -525,10 +527,10 @@ namespace SharpFast.Helpers
                                 return false;
 
                             return *(long*)l.raw == *(long*)r.raw;
-                        case NumberKind.SignedInteger:
-                            return *(long*)l.raw == *(long*)r.raw;
                         case NumberKind.Single:
                             return *(long*)l.raw == *(float*)r.raw;
+                        case NumberKind.Double:
+                            return *(long*)l.raw == *(double*)r.raw;
                         case NumberKind.Decimal:
                             return *(long*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
                         default:
@@ -537,8 +539,6 @@ namespace SharpFast.Helpers
                 case NumberKind.UnsignedInteger:
                     switch (r.Kind)
                     {
-                        case NumberKind.UnsignedInteger:
-                            return *(long*)l.raw == *(long*)r.raw;
                         case NumberKind.SignedInteger:
                             if (*(long*)r.raw < 0)
                                 return false;
@@ -549,6 +549,11 @@ namespace SharpFast.Helpers
                                 return false;
 
                             return *(long*)l.raw == *(float*)r.raw;
+                        case NumberKind.Double:
+                            if (*(double*)r.raw < 0)
+                                return false;
+
+                            return *(long*)l.raw == *(double*)r.raw;
                         case NumberKind.Decimal:
                             if (*(long*)r.raw < 0)
                                 return false;
@@ -558,48 +563,90 @@ namespace SharpFast.Helpers
                             throw new InvalidDataException("This structure is invalid.");
                     }
                 case NumberKind.Single:
-                    switch (r.Kind)
                     {
-                        case NumberKind.UnsignedInteger:
-                            return *(float*)l.raw == *(long*)r.raw;
-                        case NumberKind.SignedInteger:
-                            return *(float*)l.raw == *(long*)r.raw;
-                        case NumberKind.Single:
-                            return *(float*)l.raw == *(float*)r.raw;
-                        case NumberKind.Decimal:
-                            return (decimal)*(float*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
-                        default:
-                            throw new InvalidDataException("This structure is invalid.");
+                        switch (r.Kind)
+                        {
+                            case NumberKind.UnsignedInteger:
+                                return *(float*)l.raw == *(long*)r.raw;
+                            case NumberKind.SignedInteger:
+                                return *(float*)l.raw == *(long*)r.raw;
+                            case NumberKind.Double:
+                                {
+                                    float left = *(float*)l.raw;
+                                    double right = *(double*)r.raw;
+
+                                    return *(float*)l.raw == *(double*)r.raw;
+                                }
+                            case NumberKind.Decimal:
+                                {
+                                    decimal right = new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                                    float left = *(float*)l.raw;
+
+                                    if (left > 10000000000000000000 || left < -1000000000000000000 || left < 1 / 10000000000000000000)
+                                        return left == (float)right;
+                                    else
+                                        return (decimal)left == right;
+                                }
+                            default:
+                                throw new InvalidDataException("This structure is invalid.");
+                        }
                     }
                 case NumberKind.Double:
-                    switch (r.Kind)
                     {
-                        case NumberKind.UnsignedInteger:
-                            return *(double*)l.raw == *(long*)r.raw;
-                        case NumberKind.SignedInteger:
-                            return *(double*)l.raw == *(long*)r.raw;
-                        case NumberKind.Single:
-                            return *(double*)l.raw == *(float*)r.raw;
-                        case NumberKind.Decimal:
-                            return (decimal)*(double*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
-                        default:
-                            throw new InvalidDataException("This structure is invalid.");
+                        switch (r.Kind)
+                        {
+                            case NumberKind.UnsignedInteger:
+                                return *(double*)l.raw == *(long*)r.raw;
+                            case NumberKind.SignedInteger:
+                                return *(double*)l.raw == *(long*)r.raw;
+                            case NumberKind.Single:
+                                return *(double*)l.raw == *(float*)r.raw;
+                            case NumberKind.Decimal:
+                                decimal right = new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                                double left = *(double*)l.raw;
+
+                                if (left > 10000000000000000000 || left < -1000000000000000000 || left < 1 / 10000000000000000000)
+                                    return left == (double)right;
+                                else
+                                    return (decimal)left == right;
+                            default:
+                                throw new InvalidDataException("This structure is invalid.");
+                        }
                     }
                 case NumberKind.Decimal:
-                    switch (r.Kind)
                     {
-                        case NumberKind.UnsignedInteger:
-                            return *(decimal*)l.raw == *(long*)r.raw;
-                        case NumberKind.SignedInteger:
-                            return *(decimal*)l.raw == *(long*)r.raw;
-                        case NumberKind.Single:
-                            return *(decimal*)l.raw == (decimal)*(float*)r.raw;
-                        case NumberKind.Decimal:
-                            return *(decimal*)l.raw == new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
-                        default:
-                            throw new InvalidDataException("This structure is invalid.");
-                    }
+                        decimal left = new decimal(new int[] { *(int*)l.raw, *(int*)(l.raw + 4), *(int*)(l.raw + 8), *(int*)(l.raw + 12) });
 
+                        switch (r.Kind)
+                        {
+                            case NumberKind.UnsignedInteger:
+                                return left == *(long*)r.raw;
+                            case NumberKind.SignedInteger:
+                                return left == *(long*)r.raw;
+                            case NumberKind.Single:
+                                {
+                                    float d = 10000000000000000000;
+
+                                    float right = *(float*)r.raw;
+
+                                    if (right > 10000000000000000000 || right < -1000000000000000000 || right < 1 / 10000000000000000000)
+                                        return (float)left != right;
+                                    else
+                                        return left == (decimal)right;
+                                }
+                            case NumberKind.Double:
+                                {
+                                    double right = *(double*)r.raw;
+
+                                    if (right > 10000000000000000000 || right < -1000000000000000000 || right < 1 / 10000000000000000000)
+                                        return (double)left == right;
+                                    else
+                                        return left == (decimal)right;
+                                }
+                            default:
+                                throw new InvalidDataException("This structure is invalid.");
+                        }
+                    }
             }
 
             return false;
@@ -695,7 +742,12 @@ namespace SharpFast.Helpers
                         case NumberKind.Single:
                             return *(double*)l.raw != *(float*)r.raw;
                         case NumberKind.Decimal:
-                            return (decimal)*(double*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                            decimal right = new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+
+                            if (right > 10000000000000000000)
+                                    return (decimal)*(double*)l.raw != new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) });
+                            else
+                                return *(double*)l.raw != (double)(new decimal(new int[] { *(int*)r.raw, *(int*)(r.raw + 4), *(int*)(r.raw + 8), *(int*)(r.raw + 12) }));
                         default:
                             throw new InvalidDataException("This structure is invalid.");
                     }

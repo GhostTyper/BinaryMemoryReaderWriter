@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using SharpFast.BinaryMemoryReaderWriter;
+using SharpFast.BinaryMemoryReaderWriter.Numerics;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,7 +11,26 @@ namespace PerformanceComparison
     {
         static unsafe void Main()
         {
-            BenchmarkRunner.Run<Program>();
+            // Number num = new Number(0.000000000000000001);
+            // Number num = new Number(0x1337BEEF / (1000000000000000000.0 / 65536.0));
+
+            Number num = new Number(0.00001337);
+
+            ulong a = 5000000000000000000;
+            ulong b = 3000000000000000000;
+
+            Number number1 = new Number((double)a);
+            Number number2 = new Number((double)b);
+
+            bool l = number1 < number2;
+
+            Number result1 = number1 + number2;
+
+            Number result2 = number1 - number2;
+
+            System.Console.WriteLine($"{result2}");
+
+            // BenchmarkRunner.Run<Program>();
         }
 
         public IEnumerable<byte[]> DataSource()
