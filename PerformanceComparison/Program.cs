@@ -11,24 +11,36 @@ namespace PerformanceComparison
     {
         static unsafe void Main()
         {
+            // Number number = new Number(85070591730234615865.843651857942052864m);
+
+            Number number = new Number(127605887595351923798.765477786913079296m);
+
+            // Number number = new Number(13370000000000.000000000001m);
+
+            System.Console.WriteLine($"Edge-case: {number} != 127605887595351923798,765477786913079296 (cause decimal doesn't have enought digits.)");
+
+            number = new Number(127605887595351923798.765477786913079296);
+
+            System.Console.WriteLine($"Edge-case: {number} != 127605887595351923798,765477786913079296 (cause double doesn't have enought digits.)");
+
             // Number num = new Number(0.000000000000000001);
             // Number num = new Number(0x1337BEEF / (1000000000000000000.0 / 65536.0));
 
-            Number num = new Number(0.00001337);
+            //Number num = new Number(0.00001337);
 
-            ulong a = 5000000000000000000;
-            ulong b = 3000000000000000000;
+            //ulong a = 5000000000000000000;
+            //ulong b = 3000000000000000000;
 
-            Number number1 = new Number((double)a);
-            Number number2 = new Number((double)b);
+            //Number number1 = new Number((double)a);
+            //Number number2 = new Number((double)b);
 
-            bool l = number1 < number2;
+            //bool l = number1 < number2;
 
-            Number result1 = number1 + number2;
+            //Number result1 = number1 + number2;
 
-            Number result2 = number1 - number2;
+            //Number result2 = number1 - number2;
 
-            System.Console.WriteLine($"{result2}");
+            //System.Console.WriteLine($"{result2}");
 
             // BenchmarkRunner.Run<Program>();
         }
