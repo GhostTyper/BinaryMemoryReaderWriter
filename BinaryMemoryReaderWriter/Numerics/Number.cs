@@ -213,6 +213,48 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             return result;
         }
 
+
+        public static implicit operator Number(double src)
+        {
+            return new Number(src);
+        }
+
+        public static implicit operator Number(decimal src)
+        {
+            return new Number(src);
+        }
+
+        public static implicit operator decimal(Number src)
+        {
+            decimal result = 0m;
+
+            for (int bit = 0; bit < 64; bit++)
+                if ((src.lo & (1UL << bit)) == (1UL << bit))
+                    result += decimalPowers[bit];
+
+            for (int bit = 0; bit < 63; bit++)
+                if ((src.hi & (1UL << bit)) == (1UL << bit))
+                    result += decimalPowers[bit + 64];
+
+            return result;
+        }
+
+        public static implicit operator double(Number src)
+        {
+            double result = 0.0;
+
+            for (int bit = 0; bit < 64; bit++)
+                if ((src.lo & (1UL << bit)) == (1UL << bit))
+                    result += doublePowers[bit];
+
+            for (int bit = 0; bit < 63; bit++)
+                if ((src.hi & (1UL << bit)) == (1UL << bit))
+                    result += doublePowers[bit + 64];
+
+            return result;
+        }
+
+
         public override string ToString()
         {
             decimal result = 0m;

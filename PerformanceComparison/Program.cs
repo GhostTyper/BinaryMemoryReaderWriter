@@ -28,21 +28,25 @@ namespace PerformanceComparison
 
             //Number num = new Number(0.00001337);
 
-            //ulong a = 5000000000000000000;
-            //ulong b = 3000000000000000000;
+            ulong a = 6;
+            ulong b = 3;
 
-            //Number number1 = new Number((double)a);
-            //Number number2 = new Number((double)b);
+            Number number1 = new Number((double)a);
+            Number number2 = new Number((double)b);
 
-            //bool l = number1 < number2;
+            double numberDouble = number1;
+            decimal numberDecimal = number2;
 
-            //Number result1 = number1 + number2;
+            bool l = number1 < number2;
 
-            //Number result2 = number1 - number2;
+            Number result1 = number1 + number2;
 
-            //System.Console.WriteLine($"{result2}");
+            Number result2 = number1 - number2;
+
+            System.Console.WriteLine($"{result2}");
 
             // BenchmarkRunner.Run<Program>();
+
         }
 
         public IEnumerable<byte[]> DataSource()
