@@ -4,6 +4,7 @@ using SharpFast.BinaryMemoryReaderWriter;
 using SharpFast.BinaryMemoryReaderWriter.Numerics;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace PerformanceComparison
 {
@@ -22,6 +23,31 @@ namespace PerformanceComparison
             number = new Number(127605887595351923798.765477786913079296);
 
             System.Console.WriteLine($"Edge-case: {number} != 127605887595351923798,765477786913079296 (cause double doesn't have enought digits.)");
+
+            ulong hi, lo;
+
+            // Number.divide(0, 0, 0, 0, 0, 25, 5, out hi, out lo);
+            // System.Console.WriteLine($"{hi:X016} {lo:X016}");
+
+            uint a = 0;
+            uint b = 0;
+
+            for (ulong d = 2; d < ulong.MaxValue / 2; d *= 2)
+            {
+                Number.Divide128(out hi, out lo, 1, 0, d);
+
+                System.Console.Write($"{d:X016}: {hi:X016} {lo:X016} {lo.ToString().PadLeft(24, '0')} ");
+
+                BigInteger num = new BigInteger(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 1 });
+                BigInteger den = new BigInteger(d);
+
+                System.Console.WriteLine((num/den).ToString("X016"));
+            }
+
+            //System.Console.WriteLine($"RET = {num}");
+            //System.Console.WriteLine($"A = {a}");
+            //System.Console.WriteLine($"B = {b}");
+
 
             // Number num = new Number(0.000000000000000001);
             // Number num = new Number(0x1337BEEF / (1000000000000000000.0 / 65536.0));

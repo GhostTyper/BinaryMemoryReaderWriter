@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace SharpFast.BinaryMemoryReaderWriter.Numerics
@@ -185,6 +187,393 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
         public static bool operator <(Number l, Number r)
         {
             return l.hi < r.hi || l.lo < r.lo;
+        }
+
+        public static Number operator *(Number l, Number r)
+        {
+            ulong oli3, oli2, oli1, oli0;
+
+            if (l.hi > long.MaxValue)
+            {
+                negate(ref l.hi, ref l.lo);
+
+                if (r.hi > long.MaxValue)
+                {
+                    negate(ref r.hi, ref r.lo);
+
+                    multiply(out oli3, out oli2, out oli1, out oli0, l, r);
+
+                }
+                else
+                {
+                    multiply(out oli3, out oli2, out oli1, out oli0, l, r);
+
+                    negate(ref r.hi, ref r.lo);
+                }
+            }
+            else if (r.hi > long.MaxValue)
+            {
+                negate(ref r.hi, ref r.lo);
+
+                multiply(out oli3, out oli2, out oli1, out oli0, l, r);
+            }
+            else
+                multiply(out oli3, out oli2, out oli1, out oli0, l, r);
+
+            return new Number();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ulong add(ulong l, ulong r, ref uint c)
+        {
+            ulong result = l + r;
+
+            if (result < l || result < r)
+                c++;
+
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void negate(ref ulong hi, ref ulong lo)
+        {
+            if (hi != 0)
+                hi = 0 - hi;
+
+            if (lo != 0)
+            {
+                lo = 0 - lo;
+                lo--;
+            }
+        }
+
+        public static void divide(uint num5, uint num4, uint num3, uint num2, uint num1, uint num0, ulong den, out ulong hi, out ulong lo)
+        {
+            int dneg = bitLength((uint)(den >> 32));
+            int d = 32 - dneg;
+
+            ulong denPrime = den << d;
+
+            uint den0 = (uint)(denPrime >> 32);
+            uint den1 = (uint)denPrime;
+
+            uint num6;
+
+            if (d != 0)
+            {
+                num6 = num5 >> dneg;
+                num5 = num5 << d | num4 >> dneg;
+                num4 = num4 << d | num3 >> dneg;
+                num3 = num3 << d | num2 >> dneg;
+                num2 = num2 << d | num1 >> dneg;
+                num1 = num1 << d | num0 >> dneg;
+                num0 <<= d;
+            }
+            else
+                num6 = 0;
+
+            subDivide(num6, ref num5, ref num4, den0, den1);
+            hi = (ulong)subDivide(num5, ref num4, ref num3, den0, den1) << 32;
+            hi |= subDivide(num4, ref num3, ref num2, den0, den1);
+            lo = (ulong)subDivide(num3, ref num2, ref num1, den0, den1) << 32;
+            lo |= subDivide(num2, ref num1, ref num0, den0, den1);
+        }
+
+        private static int bitLength(uint number)
+        {
+            if (number == 0)
+                return 0;
+
+            int result;
+
+            if (number < 256)
+                result = 0;
+            else if (number < 65536)
+            {
+                result = 8;
+                number >>= 8;
+            }
+            else if (number < 16777216)
+            {
+                result = 16;
+                number >>= 16;
+            }
+            else
+            {
+                result = 24;
+                number >>= 24;
+            }
+
+            if (number < 2)
+                return result + 1;
+
+            if (number < 4)
+                return result + 2;
+
+            if (number < 8)
+                return result + 3;
+
+            if (number < 16)
+                return result + 4;
+
+            if (number < 32)
+                return result + 5;
+
+            if (number < 64)
+                return result + 6;
+
+            if (number < 128)
+                return result + 7;
+
+            return result + 8;
+        }
+
+        private static ulong DivRem96(out UInt128 rem, ref UInt128 a, ref UInt128 b)
+        {
+            var d = 32 - GetBitLength(b.r2);
+            UInt128 v;
+            LeftShift64(out v, ref b, d);
+            var r4 = (uint)LeftShift64(out rem, ref a, d);
+            var v1 = v.r2;
+            var v2 = v.r1;
+            var v3 = v.r0;
+            var r3 = rem.r3;
+            var r2 = rem.r2;
+            var r1 = rem.r1;
+            var r0 = rem.r0;
+            var q1 = DivRem(r4, ref r3, ref r2, ref r1, v1, v2, v3);
+            var q0 = DivRem(r3, ref r2, ref r1, ref r0, v1, v2, v3);
+            Create(out rem, r0, r1, r2, 0);
+            var div = (ulong)q1 << 32 | q0;
+            RightShift64(ref rem, d);
+            Debug.Assert((BigInteger)div == (BigInteger)a / (BigInteger)b);
+            Debug.Assert((BigInteger)rem == (BigInteger)a % (BigInteger)b);
+            return div;
+        }
+
+        public static void Divide128(out ulong w1, out ulong w0, long u1, long u0, ulong v)
+        {
+            w0 = 0;
+            w1 = 0;
+
+            var dneg = bitLength((uint)(v >> 32));
+            var d = 32 - dneg;
+            var vPrime = v << d;
+
+            var v1 = (uint)(vPrime >> 32);
+            var v2 = (uint)vPrime;
+
+            var r0 = (uint)u0;
+            var r1 = (uint)(u0 << 32);
+            var r2 = (uint)u1;
+            var r3 = (uint)(u1 << 32);
+            var r4 = (uint)0;
+
+            if (d != 0)
+            {
+                r4 = r3 >> dneg;
+                r3 = r3 << d | r2 >> dneg;
+                r2 = r2 << d | r1 >> dneg;
+                r1 = r1 << d | r0 >> dneg;
+                r0 <<= d;
+            }
+
+            w1 = DivRem(r4, ref r3, ref r2, v1, v2);
+            var q1 = DivRem(r3, ref r2, ref r1, v1, v2);
+            var q0 = DivRem(r2, ref r1, ref r0, v1, v2);
+            w0 = (ulong)q1 << 32 | q0;
+        }
+
+        private static uint DivRem(uint u0, ref uint u1, ref uint u2, uint v1, uint v2)
+        {
+            var qhat = Q(u0, u1, u2, v1, v2);
+            var carry = qhat * v2;
+            var borrow = (long)u2 - (uint)carry;
+
+            carry >>= 32;
+            u2 = (uint)borrow;
+
+            borrow >>= 32;
+            carry += qhat * v1;
+
+            borrow += (long)u1 - (uint)carry;
+
+            carry >>= 32;
+            u1 = (uint)borrow;
+
+            borrow >>= 32;
+            borrow += (long)u0 - (uint)carry;
+
+            if (borrow != 0)
+            {
+                --qhat;
+                carry = (ulong)u2 + v2;
+                u2 = (uint)carry;
+                carry >>= 32;
+                carry += (ulong)u1 + v1;
+                u1 = (uint)carry;
+            }
+            return (uint)qhat;
+        }
+
+        private static ulong Q(uint u0, uint u1, uint u2, uint v1, uint v2)
+        {
+            var u0u1 = (ulong)u0 << 32 | u1;
+            var qhat = u0 == v1 ? uint.MaxValue : u0u1 / v1;
+            var r = u0u1 - qhat * v1;
+            if (r == (uint)r && v2 * qhat > (r << 32 | u2))
+            {
+                --qhat;
+                r += v1;
+                if (r == (uint)r && v2 * qhat > (r << 32 | u2))
+                {
+                    --qhat;
+                    r += v1;
+                }
+            }
+            return qhat;
+        }
+
+        public static uint subDivide(uint oli0, ref uint oli1, ref uint oli2, uint n1, uint n2)
+        {
+            ulong qhat = oli0 == n1 ? uint.MaxValue : ((ulong)oli0 << 32 | oli1) / n1;
+            ulong carry = ((ulong)oli0 << 32 | oli1) - qhat * n1;
+            long borrow;
+
+            if (carry == (uint)carry && n2 * qhat > (carry << 32 | oli2))
+            {
+                qhat--;
+                carry += n1;
+
+                if (carry == (uint)carry && n2 * qhat > (carry << 32 | oli2))
+                    qhat--;
+            }
+
+            carry = qhat * n2;
+            borrow = oli2 - (long)(uint)carry;
+
+            oli2 = (uint)borrow;
+
+            carry = (carry >> 32) + qhat * n1;
+            borrow = (borrow >> 32) + n1 - (uint)carry;
+
+            oli1 = (uint)borrow;
+
+            borrow = (borrow >> 32) + oli0 - (uint)(carry >> 32);
+
+            if (borrow != 0)
+            {
+                qhat--;
+
+                carry = (ulong)oli2 + n2;
+                oli2 = (uint)carry;
+                oli1 = (uint)((carry >> 32) + oli1 + n1);
+            }
+
+            return (uint)qhat;
+        }
+
+        private static uint subDivide(uint oli0, ref uint oli1, ref uint oli2, ref uint oli3, uint n1, uint n2, uint n3)
+        {
+            ulong qhat = oli0 == n1 ? uint.MaxValue : ((ulong)oli0 << 32 | oli1) / n1;
+            ulong carry = ((ulong)oli0 << 32 | oli1) - qhat * n1;
+            long borrow;
+
+            if (carry == (uint)carry && n2 * qhat > (carry << 32 | oli2))
+            {
+                qhat--;
+                carry += n1;
+
+                if (carry == (uint)carry && n2 * qhat > (carry << 32 | oli2))
+                    qhat--;
+            }
+
+            carry = qhat * n3;
+            borrow = oli3 - (long)(uint)carry;
+
+            carry >>= 32;
+            oli3 = (uint)borrow;
+
+            borrow >>= 32;
+            carry += qhat * n2;
+            borrow += (long)oli2 - (uint)carry;
+
+            carry >>= 32;
+            oli2 = (uint)borrow;
+
+            borrow >>= 32;
+            carry += qhat * n1;
+            borrow += (long)oli1 - (uint)carry;
+
+            carry >>= 32;
+            oli1 = (uint)borrow;
+            borrow = (borrow >> 32) + oli0 - (uint)carry;
+
+            if (borrow != 0)
+            {
+                qhat--;
+                carry = (ulong)oli3 + n3;
+                oli3 = (uint)carry;
+                carry = (carry >> 32) + oli2 + n2;
+
+                oli2 = (uint)carry;
+                oli1 = (uint)((carry >> 32) + oli1 + n1);
+            }
+
+            return (uint)qhat;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ulong q(uint oli0, uint oli1, uint oli2, uint n1, uint n2)
+        {
+            ulong qhat = oli0 == n1 ? uint.MaxValue : ((ulong)oli0 << 32 | oli1) / n1;
+            ulong r = ((ulong)oli0 << 32 | oli1) - qhat * n1;
+
+            if (r == (uint)r && n2 * qhat > (r << 32 | oli2))
+            {
+                qhat--;
+                r += n1;
+
+                if (r == (uint)r && n2 * qhat > (r << 32 | oli2))
+                    qhat--;
+            }
+
+            return qhat;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void multiply(out ulong oli3, out ulong oli2, out ulong oli1, out ulong oli0, Number l, Number r)
+        {
+            ulong m00l, m00h, m01l, m01h, m10l, m10h, m11l, m11h;
+
+            subMultiply(out m00h, out m00l, l.lo, r.lo);
+            subMultiply(out m01h, out m01l, l.lo, r.hi);
+            subMultiply(out m10h, out m10l, l.hi, r.lo);
+            subMultiply(out m11h, out m11l, l.hi, r.hi);
+
+            uint c1 = 0;
+            uint c2 = 0;
+
+            oli0 = m00l;
+            oli1 = add(add(m00h, m01l, ref c1), m10l, ref c1);
+            oli2 = add(add(add(m01h, m10h, ref c2), m11l, ref c2), c1, ref c2);
+            oli3 = m11h + c2;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void subMultiply(out ulong hi, out ulong lo, ulong u, ulong v)
+        {
+            // ulong u0 = (ulong)(uint)u;
+            // ulong u1 = u >> 32;
+            // ulong v0 = (ulong)(uint)v;
+            // ulong v1 = v >> 32;
+            // ulong carry = (ulong)(uint)u * (uint)v;
+            // uint r0 = (uint)carry;
+            // ulong carry = (((ulong)(uint)u * (uint)v) >> 32) + (uint)u * (v >> 32);
+            // ulong r2 = carry >> 32;
+            ulong carry = (uint)((((ulong)(uint)u * (uint)v) >> 32) + (uint)u * (v >> 32)) + (u >> 32) * (uint)v;
+            lo = carry << 32 | ((uint)u * (uint)v);
+            hi = (carry >> 32) + (((((ulong)(uint)u * (uint)v) >> 32) + (uint)u * (v >> 32)) >> 32) + (u >> 32) * (v >> 32);
         }
 
         public static Number operator +(Number l, Number r)
