@@ -2,7 +2,9 @@
 using BenchmarkDotNet.Running;
 using SharpFast.BinaryMemoryReaderWriter;
 using SharpFast.BinaryMemoryReaderWriter.Numerics;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 
@@ -12,67 +14,32 @@ namespace PerformanceComparison
     {
         static unsafe void Main()
         {
-            // Number number = new Number(85070591730234615865.843651857942052864m);
+            Number n = new Number(0.000000000000000004m);
+            Number o = new Number(0.000000000000000004m);
 
-            Number number = new Number(127605887595351923798.765477786913079296m);
+            Console.WriteLine($"{n} / {o} = {n / o}");
 
-            // Number number = new Number(13370000000000.000000000001m);
+            Number l = new Number(4.5m);
+            Number r = new Number(1000000000000000000.0);
 
-            System.Console.WriteLine($"Edge-case: {number} != 127605887595351923798,765477786913079296 (cause decimal doesn't have enought digits.)");
+            Console.WriteLine($"{l} / {r} = {l / r}");
 
-            number = new Number(127605887595351923798.765477786913079296);
+            Console.WriteLine();
 
-            System.Console.WriteLine($"Edge-case: {number} != 127605887595351923798,765477786913079296 (cause double doesn't have enought digits.)");
+            uint* num = stackalloc uint[4];
+            uint* res = stackalloc uint[4];
 
-            ulong hi, lo;
+            num[0] = unchecked((uint)4000000000000000000UL);
+            num[1] = (uint)(4000000000000000000UL >> 32);
 
-            // Number.divide(0, 0, 0, 0, 0, 25, 5, out hi, out lo);
-            // System.Console.WriteLine($"{hi:X016} {lo:X016}");
+            uint div0 = unchecked((uint)4000000000000000000UL);
+            uint div1 = (uint)(4000000000000000000UL >> 32);
 
-            uint a = 0;
-            uint b = 0;
+            Number.divide(num, 4, div0, div1, res);
 
-            for (ulong d = 2; d < ulong.MaxValue / 2; d *= 2)
-            {
-                Number.Divide128(out hi, out lo, 1, 0, d);
-
-                System.Console.Write($"{d:X016}: {hi:X016} {lo:X016} {lo.ToString().PadLeft(24, '0')} ");
-
-                BigInteger num = new BigInteger(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 1 });
-                BigInteger den = new BigInteger(d);
-
-                System.Console.WriteLine((num/den).ToString("X016"));
-            }
-
-            //System.Console.WriteLine($"RET = {num}");
-            //System.Console.WriteLine($"A = {a}");
-            //System.Console.WriteLine($"B = {b}");
-
-
-            // Number num = new Number(0.000000000000000001);
-            // Number num = new Number(0x1337BEEF / (1000000000000000000.0 / 65536.0));
-
-            //Number num = new Number(0.00001337);
-
-            ulong a = 6;
-            ulong b = 3;
-
-            Number number1 = new Number((double)a);
-            Number number2 = new Number((double)b);
-
-            double numberDouble = number1;
-            decimal numberDecimal = number2;
-
-            bool l = number1 < number2;
-
-            Number result1 = number1 + number2;
-
-            Number result2 = number1 - number2;
-
-            System.Console.WriteLine($"{result2}");
+            Console.WriteLine($"{res[0]:X08} {res[1]:X08} {res[2]:X08} {res[3]:X08}");
 
             // BenchmarkRunner.Run<Program>();
-
         }
 
         public IEnumerable<byte[]> DataSource()

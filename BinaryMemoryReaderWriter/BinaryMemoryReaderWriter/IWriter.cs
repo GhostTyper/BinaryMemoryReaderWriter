@@ -1,5 +1,4 @@
-﻿using SharpFast.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -133,11 +132,5 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <param name="count">The amount of bytes which will be read.</param>
         /// <remarks>BEWARE: This method is also NOT DOING input checks of the given parameters.</remarks>
         void WriteBytes(byte[] data, int offset, int count);
-
-        /// <summary>
-        /// Write an UniversalNumber.
-        /// </summary>
-        /// <param name="number">The UniversalNumber to write.</param>
-        void Write(UniversalNumber number);
     }
 }
