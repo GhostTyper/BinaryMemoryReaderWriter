@@ -77,6 +77,8 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
         [FieldOffset(8)]
         private ulong lo;
 
+        public static readonly Number Zero = new Number();
+
         private Number(ulong hi, ulong lo)
         {
             this.hi = hi;
@@ -347,6 +349,151 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             return result;
         }
 
+        public static Number operator %(Number l, Number r)
+        {
+            if (r.hi == 0 && r.lo == 0)
+                return Zero;
+
+            Number result;
+
+            if (l.hi > long.MaxValue)
+            {
+                negate(ref l.hi, ref l.lo);
+
+                if (r.hi > long.MaxValue)
+                {
+                    negate(ref r.hi, ref r.lo);
+
+                    remainder(out result.hi, out result.lo, l, r);
+                }
+                else
+                {
+                    remainder(out result.hi, out result.lo, l, r);
+                    negate(ref result.hi, ref result.lo);
+                }
+            }
+            else if (r.hi > long.MaxValue)
+            {
+                negate(ref r.hi, ref r.lo);
+                remainder(out result.hi, out result.lo, l, r);
+                negate(ref result.hi, ref result.lo);
+            }
+            else
+            {
+                remainder(out result.hi, out result.lo, l, r);
+            }
+
+            return result;
+        }
+
+        private static unsafe void remainder(out ulong oli1, out ulong oli0, Number l, Number r)
+        {
+            //ulong m00l, m00h, m01l, m01h, m10l, m10h, m11l, m11h, oli2;
+
+            //subMultiply(out m00h, out m00l, l.lo, 1000000000000000000UL);
+            //subMultiply(out m01h, out m01l, l.lo, 0);
+            //subMultiply(out m10h, out m10l, l.hi, 1000000000000000000UL);
+            //subMultiply(out m11h, out m11l, l.hi, 0);
+
+            //uint c1 = 0;
+            //uint c2 = 0;
+
+            //oli0 = m00l;
+            //oli1 = add(add(m00h, m01l, ref c1), m10l, ref c1);
+            //oli2 = add(add(add(m01h, m10h, ref c2), m11l, ref c2), c1, ref c2);
+
+            //uint* num = stackalloc uint[6];
+            //uint* res = stackalloc uint[6];
+
+            uint* num = stackalloc uint[4];
+            uint* res = stackalloc uint[4];
+
+            //num[0] = (uint)oli0;
+            //num[1] = (uint)(oli0 >> 32);
+            //num[2] = (uint)oli1;
+            //num[3] = (uint)(oli1 >> 32);
+            //num[4] = (uint)oli2;
+            //num[5] = (uint)(oli2 >> 32);
+
+            num[0] = (uint)l.lo;
+            num[1] = (uint)(l.lo >> 32);
+            num[2] = (uint)l.hi;
+            num[3] = (uint)(l.hi >> 32);
+
+            uint div0 = (uint)r.lo;
+            uint div1 = (uint)(r.lo >> 32);
+            uint div2 = (uint)r.hi;
+            uint div3 = (uint)(r.hi >> 32);
+
+            //oli0 = (ulong)num[0] + ((div0 >> 1) | (div1 << 31));
+            //num[0] = (uint)oli0;
+            //oli0 = num[1] + (oli0 >> 32) + ((div1 >> 1) | (div2 << 31));
+            //num[1] = (uint)oli0;
+            //oli0 = num[2] + (oli0 >> 32) + ((div2 >> 1) | (div3 << 31));
+            //num[2] = (uint)oli0;
+            //oli0 = num[3] + (oli0 >> 32) + (div3 >> 1);
+            //num[3] = (uint)oli0;
+            //oli0 = num[4] + (oli0 >> 32);
+            //num[4] = (uint)oli0;
+            //oli0 = num[5] + (oli0 >> 32);
+            //num[5] = (uint)oli0;
+
+            if (div3 != 0)
+            {
+                //if (num[5] > 0)
+                //    divide(num, 6, div0, div1, div2, div3, res);
+                //else if (num[4] > 0)
+                //    divide(num, 5, div0, div1, div2, div3, res);
+                //else if (num[3] > 0)
+                    divide(num, 4, div0, div1, div2, div3, res);
+            }
+            else if (div2 != 0)
+            {
+                //if (num[5] > 0)
+                //    divide(num, 6, div0, div1, div2, res);
+                //else if (num[4] > 0)
+                //    divide(num, 5, div0, div1, div2, res);
+                //else if (num[3] > 0)
+                if (num[3] > 0)
+                    divide(num, 4, div0, div1, div2, res);
+                else if (num[2] > 0)
+                    divide(num, 3, div0, div1, div2, res);
+            }
+            else if (div1 != 0)
+            {
+                //if (num[5] > 0)
+                //    divide(num, 6, div0, div1, res);
+                //else if (num[4] > 0)
+                //    divide(num, 5, div0, div1, res);
+                if (num[3] > 0)
+                    divide(num, 4, div0, div1, res);
+                else if (num[2] > 0)
+                    divide(num, 3, div0, div1, res);
+                else if (num[1] > 0)
+                    divide(num, 2, div0, div1, res);
+            }
+            else if (div0 != 0)
+            {
+                //if (num[5] > 0)
+                //    divide(num, 6, div0, res);
+                //else if (num[4] > 0)
+                //    divide(num, 5, div0, res);
+                if (num[3] > 0)
+                    divide(num, 4, div0, res);
+                else if (num[2] > 0)
+                    divide(num, 3, div0, res);
+                else if (num[1] > 0)
+                    divide(num, 2, div0, res);
+                else if (num[0] > 0)
+                    divide(num, 1, div0, res);
+            }
+            else
+                throw new DivideByZeroException("Sorry, can't divide by zero.");
+
+            oli0 = ((ulong)num[1] << 32) | num[0];
+            oli1 = ((ulong)num[3] << 32) | num[2];
+        }
+
         private static unsafe bool divide(out ulong oli1, out ulong oli0, Number l, Number r)
         {
             ulong m00l, m00h, m01l, m01h, m10l, m10h, m11l, m11h, oli2;
@@ -378,13 +525,9 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             uint div2 = (uint)r.hi;
             uint div3 = (uint)(r.hi >> 32);
 
-            Console.WriteLine($"{num[0]:X08} {num[1]:X08} {num[2]:X08} {num[3]:X08} {num[4]:X08} {num[5]:X08}");
-
-            BigInteger before = new BigInteger(new byte[] { (byte)num[0], (byte)(num[0] >> 8), (byte)(num[0] >> 16), (byte)(num[0] >> 24), (byte)num[1], (byte)(num[1] >> 8), (byte)(num[1] >> 16), (byte)(num[1] >> 24),
-                                                             (byte)num[2], (byte)(num[2] >> 8), (byte)(num[2] >> 16), (byte)(num[2] >> 24), (byte)num[3], (byte)(num[3] >> 8), (byte)(num[3] >> 16), (byte)(num[3] >> 24),
-                                                             (byte)num[4], (byte)(num[4] >> 8), (byte)(num[4] >> 16), (byte)(num[4] >> 24), (byte)num[5], (byte)(num[5] >> 8), (byte)(num[5] >> 16), (byte)(num[5] >> 24) });
-
-            Console.WriteLine("BEFORE = " + before.ToString());
+            //BigInteger before = new BigInteger(new byte[] { (byte)num[0], (byte)(num[0] >> 8), (byte)(num[0] >> 16), (byte)(num[0] >> 24), (byte)num[1], (byte)(num[1] >> 8), (byte)(num[1] >> 16), (byte)(num[1] >> 24),
+            //                                                 (byte)num[2], (byte)(num[2] >> 8), (byte)(num[2] >> 16), (byte)(num[2] >> 24), (byte)num[3], (byte)(num[3] >> 8), (byte)(num[3] >> 16), (byte)(num[3] >> 24),
+            //                                                 (byte)num[4], (byte)(num[4] >> 8), (byte)(num[4] >> 16), (byte)(num[4] >> 24), (byte)num[5], (byte)(num[5] >> 8), (byte)(num[5] >> 16), (byte)(num[5] >> 24) });
 
             oli0 = (ulong)num[0] + ((div0 >> 1) | (div1 << 31));
             num[0] = (uint)oli0;
@@ -398,21 +541,6 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             num[4] = (uint)oli0;
             oli0 = num[5] + (oli0 >> 32);
             num[5] = (uint)oli0;
-
-            before = new BigInteger(new byte[] { (byte)div0, (byte)(div0 >> 8), (byte)(div0 >> 16), (byte)(div0 >> 24), (byte)div1, (byte)(div1 >> 8), (byte)(div1 >> 16), (byte)(div1 >> 24),
-                                                             (byte)div2, (byte)(div2 >> 8), (byte)(div2 >> 16), (byte)(div2 >> 24), (byte)div3, (byte)(div3 >> 8), (byte)(div3 >> 16), (byte)(div3 >> 24) });
-
-            Console.WriteLine("ADDED = " + before.ToString());
-
-            before = new BigInteger(new byte[] { (byte)num[0], (byte)(num[0] >> 8), (byte)(num[0] >> 16), (byte)(num[0] >> 24), (byte)num[1], (byte)(num[1] >> 8), (byte)(num[1] >> 16), (byte)(num[1] >> 24),
-                                                             (byte)num[2], (byte)(num[2] >> 8), (byte)(num[2] >> 16), (byte)(num[2] >> 24), (byte)num[3], (byte)(num[3] >> 8), (byte)(num[3] >> 16), (byte)(num[3] >> 24),
-                                                             (byte)num[4], (byte)(num[4] >> 8), (byte)(num[4] >> 16), (byte)(num[4] >> 24), (byte)num[5], (byte)(num[5] >> 8), (byte)(num[5] >> 16), (byte)(num[5] >> 24) });
-
-            Console.WriteLine("AFTER = " + before.ToString());
-
-            Console.WriteLine($"{num[0]:X08} {num[1]:X08} {num[2]:X08} {num[3]:X08} {num[4]:X08} {num[5]:X08}");
-
-            Console.WriteLine();
 
             if (div3 != 0)
             {

@@ -7,37 +7,43 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace PerformanceComparison
 {
     public class Program
     {
+        static Number r;
+
         static unsafe void Main()
         {
-            Number n = new Number(0.000000000000000004m);
-            Number o = new Number(0.000000000000000004m);
+            //for (decimal l = 1m; l <= 10m; l++)
+            //    for (decimal r = 1m; r <= 10m; r++)
+            //    {
+            //        Number n = new Number(l);
+            //        Number o = new Number(r);
 
-            Console.WriteLine($"{n} / {o} = {n / o}");
+            //        Console.WriteLine($"{n} % {o} = {n % o}");
+            //    }
 
-            Number l = new Number(4.5m);
-            Number r = new Number(1000000000000000000.0);
+            Number n = new Number(10.00001m);
+            Number o = new Number(10m);
 
-            Console.WriteLine($"{l} / {r} = {l / r}");
+            Console.WriteLine($"{n} % {o} = {n % o}");
 
-            Console.WriteLine();
+            //Stopwatch sw = Stopwatch.StartNew();
 
-            uint* num = stackalloc uint[4];
-            uint* res = stackalloc uint[4];
+            //for (int i = 0; i < 10000000; i++)
+            //    r = n / o;
 
-            num[0] = unchecked((uint)4000000000000000000UL);
-            num[1] = (uint)(4000000000000000000UL >> 32);
+            //sw.Restart();
 
-            uint div0 = unchecked((uint)4000000000000000000UL);
-            uint div1 = (uint)(4000000000000000000UL >> 32);
+            //for (int i = 0; i < 10000000; i++)
+            //    r = n / o;
 
-            Number.divide(num, 4, div0, div1, res);
+            //sw.Stop();
 
-            Console.WriteLine($"{res[0]:X08} {res[1]:X08} {res[2]:X08} {res[3]:X08}");
+            //Console.WriteLine($" * {sw.Elapsed}: {sw.Elapsed.TotalMilliseconds/10.0:F} ns/op.");
 
             // BenchmarkRunner.Run<Program>();
         }
