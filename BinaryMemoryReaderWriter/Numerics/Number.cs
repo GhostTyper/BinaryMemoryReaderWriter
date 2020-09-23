@@ -69,6 +69,134 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
         //                                                  5316911983139663491.615228241121378304, 10633823966279326983.230456482242756608, 21267647932558653966.460912964485513216,
         //                                                  42535295865117307932.921825928971026432, 85070591730234615865.843651857942052864 };
 
+        private readonly static Number[] mods = { /* Bit   0: */ new Number(0x0000000000000000, 0x000000000000000A),
+                                                  /* Bit   1: */ new Number(0x0000000000000000, 0x000000000000000A),
+                                                  /* Bit   2: */ new Number(0x0000000000000000, 0x000000000000000A),
+                                                  /* Bit   3: */ new Number(0x0000000000000000, 0x000000000000000A),
+                                                  /* Bit   4: */ new Number(0x0000000000000000, 0x0000000000000064),
+                                                  /* Bit   5: */ new Number(0x0000000000000000, 0x0000000000000064),
+                                                  /* Bit   6: */ new Number(0x0000000000000000, 0x0000000000000064),
+                                                  /* Bit   7: */ new Number(0x0000000000000000, 0x00000000000003E8),
+                                                  /* Bit   8: */ new Number(0x0000000000000000, 0x00000000000003E8),
+                                                  /* Bit   9: */ new Number(0x0000000000000000, 0x00000000000003E8),
+                                                  /* Bit  10: */ new Number(0x0000000000000000, 0x0000000000002710),
+                                                  /* Bit  11: */ new Number(0x0000000000000000, 0x0000000000002710),
+                                                  /* Bit  12: */ new Number(0x0000000000000000, 0x0000000000002710),
+                                                  /* Bit  13: */ new Number(0x0000000000000000, 0x0000000000002710),
+                                                  /* Bit  14: */ new Number(0x0000000000000000, 0x00000000000186A0),
+                                                  /* Bit  15: */ new Number(0x0000000000000000, 0x00000000000186A0),
+                                                  /* Bit  16: */ new Number(0x0000000000000000, 0x00000000000186A0),
+                                                  /* Bit  17: */ new Number(0x0000000000000000, 0x00000000000F4240),
+                                                  /* Bit  18: */ new Number(0x0000000000000000, 0x00000000000F4240),
+                                                  /* Bit  19: */ new Number(0x0000000000000000, 0x00000000000F4240),
+                                                  /* Bit  20: */ new Number(0x0000000000000000, 0x0000000000989680),
+                                                  /* Bit  21: */ new Number(0x0000000000000000, 0x0000000000989680),
+                                                  /* Bit  22: */ new Number(0x0000000000000000, 0x0000000000989680),
+                                                  /* Bit  23: */ new Number(0x0000000000000000, 0x0000000000989680),
+                                                  /* Bit  24: */ new Number(0x0000000000000000, 0x0000000005F5E100),
+                                                  /* Bit  25: */ new Number(0x0000000000000000, 0x0000000005F5E100),
+                                                  /* Bit  26: */ new Number(0x0000000000000000, 0x0000000005F5E100),
+                                                  /* Bit  27: */ new Number(0x0000000000000000, 0x000000003B9ACA00),
+                                                  /* Bit  28: */ new Number(0x0000000000000000, 0x000000003B9ACA00),
+                                                  /* Bit  29: */ new Number(0x0000000000000000, 0x000000003B9ACA00),
+                                                  /* Bit  30: */ new Number(0x0000000000000000, 0x00000002540BE400),
+                                                  /* Bit  31: */ new Number(0x0000000000000000, 0x00000002540BE400),
+                                                  /* Bit  32: */ new Number(0x0000000000000000, 0x00000002540BE400),
+                                                  /* Bit  33: */ new Number(0x0000000000000000, 0x00000002540BE400),
+                                                  /* Bit  34: */ new Number(0x0000000000000000, 0x000000174876E800),
+                                                  /* Bit  35: */ new Number(0x0000000000000000, 0x000000174876E800),
+                                                  /* Bit  36: */ new Number(0x0000000000000000, 0x000000174876E800),
+                                                  /* Bit  37: */ new Number(0x0000000000000000, 0x000000E8D4A51000),
+                                                  /* Bit  38: */ new Number(0x0000000000000000, 0x000000E8D4A51000),
+                                                  /* Bit  39: */ new Number(0x0000000000000000, 0x000000E8D4A51000),
+                                                  /* Bit  40: */ new Number(0x0000000000000000, 0x000009184E72A000),
+                                                  /* Bit  41: */ new Number(0x0000000000000000, 0x000009184E72A000),
+                                                  /* Bit  42: */ new Number(0x0000000000000000, 0x000009184E72A000),
+                                                  /* Bit  43: */ new Number(0x0000000000000000, 0x000009184E72A000),
+                                                  /* Bit  44: */ new Number(0x0000000000000000, 0x00005AF3107A4000),
+                                                  /* Bit  45: */ new Number(0x0000000000000000, 0x00005AF3107A4000),
+                                                  /* Bit  46: */ new Number(0x0000000000000000, 0x00005AF3107A4000),
+                                                  /* Bit  47: */ new Number(0x0000000000000000, 0x00038D7EA4C68000),
+                                                  /* Bit  48: */ new Number(0x0000000000000000, 0x00038D7EA4C68000),
+                                                  /* Bit  49: */ new Number(0x0000000000000000, 0x00038D7EA4C68000),
+                                                  /* Bit  50: */ new Number(0x0000000000000000, 0x002386F26FC10000),
+                                                  /* Bit  51: */ new Number(0x0000000000000000, 0x002386F26FC10000),
+                                                  /* Bit  52: */ new Number(0x0000000000000000, 0x002386F26FC10000),
+                                                  /* Bit  53: */ new Number(0x0000000000000000, 0x002386F26FC10000),
+                                                  /* Bit  54: */ new Number(0x0000000000000000, 0x016345785D8A0000),
+                                                  /* Bit  55: */ new Number(0x0000000000000000, 0x016345785D8A0000),
+                                                  /* Bit  56: */ new Number(0x0000000000000000, 0x016345785D8A0000),
+                                                  /* Bit  57: */ new Number(0x0000000000000000, 0x0DE0B6B3A7640000),
+                                                  /* Bit  58: */ new Number(0x0000000000000000, 0x0DE0B6B3A7640000),
+                                                  /* Bit  59: */ new Number(0x0000000000000000, 0x0DE0B6B3A7640000),
+                                                  /* Bit  60: */ new Number(0x0000000000000000, 0x8AC7230489E80000),
+                                                  /* Bit  61: */ new Number(0x0000000000000000, 0x8AC7230489E80000),
+                                                  /* Bit  62: */ new Number(0x0000000000000000, 0x8AC7230489E80000),
+                                                  /* Bit  63: */ new Number(0x0000000000000000, 0x8AC7230489E80000),
+                                                  /* Bit  64: */ new Number(0x0000000000000005, 0x6BC75E2D63100000),
+                                                  /* Bit  65: */ new Number(0x0000000000000005, 0x6BC75E2D63100000),
+                                                  /* Bit  66: */ new Number(0x0000000000000005, 0x6BC75E2D63100000),
+                                                  /* Bit  67: */ new Number(0x0000000000000036, 0x35C9ADC5DEA00000),
+                                                  /* Bit  68: */ new Number(0x0000000000000036, 0x35C9ADC5DEA00000),
+                                                  /* Bit  69: */ new Number(0x0000000000000036, 0x35C9ADC5DEA00000),
+                                                  /* Bit  70: */ new Number(0x000000000000021E, 0x19E0C9BAB2400000),
+                                                  /* Bit  71: */ new Number(0x000000000000021E, 0x19E0C9BAB2400000),
+                                                  /* Bit  72: */ new Number(0x000000000000021E, 0x19E0C9BAB2400000),
+                                                  /* Bit  73: */ new Number(0x000000000000021E, 0x19E0C9BAB2400000),
+                                                  /* Bit  74: */ new Number(0x000000000000152D, 0x02C7E14AF6800000),
+                                                  /* Bit  75: */ new Number(0x000000000000152D, 0x02C7E14AF6800000),
+                                                  /* Bit  76: */ new Number(0x000000000000152D, 0x02C7E14AF6800000),
+                                                  /* Bit  77: */ new Number(0x000000000000D3C2, 0x1BCECCEDA1000000),
+                                                  /* Bit  78: */ new Number(0x000000000000D3C2, 0x1BCECCEDA1000000),
+                                                  /* Bit  79: */ new Number(0x000000000000D3C2, 0x1BCECCEDA1000000),
+                                                  /* Bit  80: */ new Number(0x0000000000084595, 0x161401484A000000),
+                                                  /* Bit  81: */ new Number(0x0000000000084595, 0x161401484A000000),
+                                                  /* Bit  82: */ new Number(0x0000000000084595, 0x161401484A000000),
+                                                  /* Bit  83: */ new Number(0x0000000000084595, 0x161401484A000000),
+                                                  /* Bit  84: */ new Number(0x000000000052B7D2, 0xDCC80CD2E4000000),
+                                                  /* Bit  85: */ new Number(0x000000000052B7D2, 0xDCC80CD2E4000000),
+                                                  /* Bit  86: */ new Number(0x000000000052B7D2, 0xDCC80CD2E4000000),
+                                                  /* Bit  87: */ new Number(0x00000000033B2E3C, 0x9FD0803CE8000000),
+                                                  /* Bit  88: */ new Number(0x00000000033B2E3C, 0x9FD0803CE8000000),
+                                                  /* Bit  89: */ new Number(0x00000000033B2E3C, 0x9FD0803CE8000000),
+                                                  /* Bit  90: */ new Number(0x00000000204FCE5E, 0x3E25026110000000),
+                                                  /* Bit  91: */ new Number(0x00000000204FCE5E, 0x3E25026110000000),
+                                                  /* Bit  92: */ new Number(0x00000000204FCE5E, 0x3E25026110000000),
+                                                  /* Bit  93: */ new Number(0x00000000204FCE5E, 0x3E25026110000000),
+                                                  /* Bit  94: */ new Number(0x00000001431E0FAE, 0x6D7217CAA0000000),
+                                                  /* Bit  95: */ new Number(0x00000001431E0FAE, 0x6D7217CAA0000000),
+                                                  /* Bit  96: */ new Number(0x00000001431E0FAE, 0x6D7217CAA0000000),
+                                                  /* Bit  97: */ new Number(0x0000000C9F2C9CD0, 0x4674EDEA40000000),
+                                                  /* Bit  98: */ new Number(0x0000000C9F2C9CD0, 0x4674EDEA40000000),
+                                                  /* Bit  99: */ new Number(0x0000000C9F2C9CD0, 0x4674EDEA40000000),
+                                                  /* Bit 100: */ new Number(0x0000007E37BE2022, 0xC0914B2680000000),
+                                                  /* Bit 101: */ new Number(0x0000007E37BE2022, 0xC0914B2680000000),
+                                                  /* Bit 102: */ new Number(0x0000007E37BE2022, 0xC0914B2680000000),
+                                                  /* Bit 103: */ new Number(0x000004EE2D6D415B, 0x85ACEF8100000000),
+                                                  /* Bit 104: */ new Number(0x000004EE2D6D415B, 0x85ACEF8100000000),
+                                                  /* Bit 105: */ new Number(0x000004EE2D6D415B, 0x85ACEF8100000000),
+                                                  /* Bit 106: */ new Number(0x000004EE2D6D415B, 0x85ACEF8100000000),
+                                                  /* Bit 107: */ new Number(0x0000314DC6448D93, 0x38C15B0A00000000),
+                                                  /* Bit 108: */ new Number(0x0000314DC6448D93, 0x38C15B0A00000000),
+                                                  /* Bit 109: */ new Number(0x0000314DC6448D93, 0x38C15B0A00000000),
+                                                  /* Bit 110: */ new Number(0x0001ED09BEAD87C0, 0x378D8E6400000000),
+                                                  /* Bit 111: */ new Number(0x0001ED09BEAD87C0, 0x378D8E6400000000),
+                                                  /* Bit 112: */ new Number(0x0001ED09BEAD87C0, 0x378D8E6400000000),
+                                                  /* Bit 113: */ new Number(0x0013426172C74D82, 0x2B878FE800000000),
+                                                  /* Bit 114: */ new Number(0x0013426172C74D82, 0x2B878FE800000000),
+                                                  /* Bit 115: */ new Number(0x0013426172C74D82, 0x2B878FE800000000),
+                                                  /* Bit 116: */ new Number(0x0013426172C74D82, 0x2B878FE800000000),
+                                                  /* Bit 117: */ new Number(0x00C097CE7BC90715, 0xB34B9F1000000000),
+                                                  /* Bit 118: */ new Number(0x00C097CE7BC90715, 0xB34B9F1000000000),
+                                                  /* Bit 119: */ new Number(0x00C097CE7BC90715, 0xB34B9F1000000000),
+                                                  /* Bit 120: */ new Number(0x0785EE10D5DA46D9, 0x00F436A000000000),
+                                                  /* Bit 121: */ new Number(0x0785EE10D5DA46D9, 0x00F436A000000000),
+                                                  /* Bit 122: */ new Number(0x0785EE10D5DA46D9, 0x00F436A000000000),
+                                                  /* Bit 123: */ new Number(0x4B3B4CA85A86C47A, 0x098A224000000000),
+                                                  /* Bit 124: */ new Number(0x4B3B4CA85A86C47A, 0x098A224000000000),
+                                                  /* Bit 125: */ new Number(0x4B3B4CA85A86C47A, 0x098A224000000000),
+                                                  /* Bit 126: */ new Number(0x4B3B4CA85A86C47A, 0x098A224000000000) };
+
         //[DebuggerBrowsable(DebuggerBrowsableState.Never)]
         [FieldOffset(0)]
         private ulong hi;
@@ -79,15 +207,9 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
 
         public static readonly Number Zero = new Number();
 
-        private Number(ulong hi, ulong lo)
+        public Number(ulong hi, ulong lo)
         {
             this.hi = hi;
-            this.lo = lo;
-        }
-
-        private Number(ulong lo)
-        {
-            hi = 0;
             this.lo = lo;
         }
 
@@ -136,6 +258,9 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
 
         public unsafe Number(double number)
         {
+            Number decimator;
+            Number prev;
+
             if (double.IsNaN(number))
                 throw new ArgumentException("Symphony Number doesn't support NaN.", "number");
 
@@ -199,8 +324,35 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             {
                 lo = mantisse << exponent;
                 hi = (mantisse >> (64 - exponent)) & 0x7FFFFFFFFFFFFFFFUL;
+
+                decimator = mods[exponent];
+                prev = new Number(hi, lo);
+
+                remainder(out decimator.hi, out decimator.lo, prev, decimator);
+
+                lo = prev.lo - decimator.lo;
+                hi = prev.hi - decimator.hi;
+
+                if (prev.lo < decimator.lo)
+                    hi--;
             }
-            else if (exponent < 128)
+            else if (exponent < 127)
+            {
+                lo = 0;
+                hi = (mantisse << (exponent - 64)) & 0x7FFFFFFFFFFFFFFFUL;
+
+                decimator = mods[exponent];
+                prev = new Number(hi, lo);
+
+                remainder(out decimator.hi, out decimator.lo, prev, decimator);
+
+                lo = prev.lo - decimator.lo;
+                hi = prev.hi - decimator.hi;
+
+                if (prev.lo < decimator.lo)
+                    hi--;
+            }
+            else if (exponent == 127)
             {
                 lo = 0;
                 hi = (mantisse << (exponent - 64)) & 0x7FFFFFFFFFFFFFFFUL;
@@ -388,32 +540,8 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
 
         private static unsafe void remainder(out ulong oli1, out ulong oli0, Number l, Number r)
         {
-            //ulong m00l, m00h, m01l, m01h, m10l, m10h, m11l, m11h, oli2;
-
-            //subMultiply(out m00h, out m00l, l.lo, 1000000000000000000UL);
-            //subMultiply(out m01h, out m01l, l.lo, 0);
-            //subMultiply(out m10h, out m10l, l.hi, 1000000000000000000UL);
-            //subMultiply(out m11h, out m11l, l.hi, 0);
-
-            //uint c1 = 0;
-            //uint c2 = 0;
-
-            //oli0 = m00l;
-            //oli1 = add(add(m00h, m01l, ref c1), m10l, ref c1);
-            //oli2 = add(add(add(m01h, m10h, ref c2), m11l, ref c2), c1, ref c2);
-
-            //uint* num = stackalloc uint[6];
-            //uint* res = stackalloc uint[6];
-
             uint* num = stackalloc uint[4];
             uint* res = stackalloc uint[4];
-
-            //num[0] = (uint)oli0;
-            //num[1] = (uint)(oli0 >> 32);
-            //num[2] = (uint)oli1;
-            //num[3] = (uint)(oli1 >> 32);
-            //num[4] = (uint)oli2;
-            //num[5] = (uint)(oli2 >> 32);
 
             num[0] = (uint)l.lo;
             num[1] = (uint)(l.lo >> 32);
@@ -425,35 +553,12 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             uint div2 = (uint)r.hi;
             uint div3 = (uint)(r.hi >> 32);
 
-            //oli0 = (ulong)num[0] + ((div0 >> 1) | (div1 << 31));
-            //num[0] = (uint)oli0;
-            //oli0 = num[1] + (oli0 >> 32) + ((div1 >> 1) | (div2 << 31));
-            //num[1] = (uint)oli0;
-            //oli0 = num[2] + (oli0 >> 32) + ((div2 >> 1) | (div3 << 31));
-            //num[2] = (uint)oli0;
-            //oli0 = num[3] + (oli0 >> 32) + (div3 >> 1);
-            //num[3] = (uint)oli0;
-            //oli0 = num[4] + (oli0 >> 32);
-            //num[4] = (uint)oli0;
-            //oli0 = num[5] + (oli0 >> 32);
-            //num[5] = (uint)oli0;
-
             if (div3 != 0)
             {
-                //if (num[5] > 0)
-                //    divide(num, 6, div0, div1, div2, div3, res);
-                //else if (num[4] > 0)
-                //    divide(num, 5, div0, div1, div2, div3, res);
-                //else if (num[3] > 0)
-                    divide(num, 4, div0, div1, div2, div3, res);
+                divide(num, 4, div0, div1, div2, div3, res);
             }
             else if (div2 != 0)
             {
-                //if (num[5] > 0)
-                //    divide(num, 6, div0, div1, div2, res);
-                //else if (num[4] > 0)
-                //    divide(num, 5, div0, div1, div2, res);
-                //else if (num[3] > 0)
                 if (num[3] > 0)
                     divide(num, 4, div0, div1, div2, res);
                 else if (num[2] > 0)
@@ -461,10 +566,6 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             }
             else if (div1 != 0)
             {
-                //if (num[5] > 0)
-                //    divide(num, 6, div0, div1, res);
-                //else if (num[4] > 0)
-                //    divide(num, 5, div0, div1, res);
                 if (num[3] > 0)
                     divide(num, 4, div0, div1, res);
                 else if (num[2] > 0)
@@ -474,10 +575,6 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             }
             else if (div0 != 0)
             {
-                //if (num[5] > 0)
-                //    divide(num, 6, div0, res);
-                //else if (num[4] > 0)
-                //    divide(num, 5, div0, res);
                 if (num[3] > 0)
                     divide(num, 4, div0, res);
                 else if (num[2] > 0)
@@ -1248,7 +1345,7 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             result.hi = l.hi - r.hi;
 
             if (l.lo < r.lo)
-                --l.hi;
+                result.hi--;
 
             return result;
         }
