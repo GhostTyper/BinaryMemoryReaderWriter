@@ -213,49 +213,6 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
             this.lo = lo;
         }
 
-        //// OLD METHOD. (Ungenau gegen hintere Werte des doubles.)
-        //public Number(double number)
-        //{
-        //    if (double.IsNaN(number))
-        //        throw new ArgumentException("Symphony Number doesn't support NaN.", "number");
-
-        //    if (double.IsPositiveInfinity(number) || number >= 170141183460469231731.687303715884105728)
-        //    {
-        //        hi = 0x7FFFFFFFFFFFFFFF;
-        //        lo = 0xFFFFFFFFFFFFFFFF;
-
-        //        return;
-        //    }
-
-        //    if (double.IsNegativeInfinity(number) || number <= -170141183460469231731.687303715884105728)
-        //    {
-        //        hi = 0x8000000000000000;
-        //        lo = 0;
-
-        //        return;
-        //    }
-
-        //    hi = 0;
-        //    lo = 0;
-
-        //    if (number < 0)
-        //        number = -number;
-
-        //    for (int bit = 126; bit >= 64; bit--)
-        //        if (number >= doublePowers[bit])
-        //        {
-        //            number -= doublePowers[bit];
-        //            hi |= 1UL << (bit - 64);
-        //        }
-
-        //    for (int bit = 63; bit >= 0; bit--)
-        //        if (number >= doublePowers[bit])
-        //        {
-        //            number -= doublePowers[bit];
-        //            lo |= 1UL << bit;
-        //        }
-        //}
-
         public unsafe Number(double number)
         {
             Number decimator;
@@ -387,25 +344,41 @@ namespace SharpFast.BinaryMemoryReaderWriter.Numerics
                 return;
             }
 
-            hi = 0;
-            lo = 0;
+            number = decimal.Round(number, 18);
 
-            if (number < 0)
-                number = -number;
+            int[] bits = decimal.GetBits(number);
 
-            for (int bit = 126; bit >= 64; bit--)
-                if (number >= decimalPowers[bit])
+            int exponent = 18 - (byte)(bits[3] >> 16);
+
+            hi = (uint)bits[2];
+            lo = (ulong)(uint)bits[1] << 32 | (uint)bits[0];
+
+            if (exponent > 0)
+            {
+                ulong exp = 1;
+                ulong m00l, m00h, m01l, m01h, m10l, m10h;
+
+                while (exponent > 4)
                 {
-                    number -= decimalPowers[bit];
-                    hi |= 1UL << (bit - 64);
+                    exp *= 10000;
+                    exponent -= 4;
                 }
 
-            for (int bit = 63; bit >= 0; bit--)
-                if (number >= decimalPowers[bit])
+                while (exponent > 0)
                 {
-                    number -= decimalPowers[bit];
-                    lo |= 1UL << bit;
+                    exp *= 10;
+                    exponent--;
                 }
+
+                subMultiply(out m00h, out m00l, lo, exp);
+                subMultiply(out m01h, out m01l, lo, 0);
+                subMultiply(out m10h, out m10l, hi, exp);
+
+                uint c1 = 0;
+
+                lo = m00l;
+                hi = add(add(m00h, m01l, ref c1), m10l, ref c1);
+            }
         }
 
         public static bool operator ==(Number l, Number r)

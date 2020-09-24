@@ -26,7 +26,7 @@ namespace PerformanceComparison
             //        Console.WriteLine($"{n} % {o} = {n % o}");
             //    }
 
-            Number n = new Number(87623541.1);
+            Number n = new Number(111.711m);
             Number o = new Number(2387482.7);
 
             Console.WriteLine($"{n} % {o} = {n % o}");
