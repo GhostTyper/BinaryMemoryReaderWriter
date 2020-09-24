@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
-namespace SharpFast.BinaryMemoryReaderWriter.Numerics
+namespace SharpFast.Numerics
 {
     [StructLayout(LayoutKind.Explicit, Size = 16)]
     //[DebuggerDisplay("Nothing, hahaha")]

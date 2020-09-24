@@ -1,7 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using SharpFast.BinaryMemoryReaderWriter;
-using SharpFast.BinaryMemoryReaderWriter.Numerics;
+using SharpFast.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
