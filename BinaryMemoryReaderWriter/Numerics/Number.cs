@@ -405,11 +405,11 @@ namespace SharpFast.Numerics
         {
             ulong oli1, oli0;
 
-            if (l.hi > long.MaxValue)
+            if (l.lo > long.MaxValue)
             {
                 negate(ref l.hi, ref l.lo);
 
-                if (r.hi > long.MaxValue)
+                if (r.lo > long.MaxValue)
                 {
                     negate(ref r.hi, ref r.lo);
 
@@ -423,7 +423,7 @@ namespace SharpFast.Numerics
                     return new Number(oli1, oli0);
                 }
             }
-            else if (r.hi > long.MaxValue)
+            else if (r.lo > long.MaxValue)
             {
                 negate(ref r.hi, ref r.lo);
                 multiply(out oli1, out oli0, l, r);
@@ -444,11 +444,11 @@ namespace SharpFast.Numerics
 
             Number result;
 
-            if (l.hi > long.MaxValue)
+            if (l.lo > long.MaxValue)
             {
                 negate(ref l.hi, ref l.lo);
 
-                if (r.hi > long.MaxValue)
+                if (r.lo > long.MaxValue)
                 {
                     negate(ref r.hi, ref r.lo);
 
@@ -460,7 +460,7 @@ namespace SharpFast.Numerics
                     negate(ref result.hi, ref result.lo);
                 }
             }
-            else if (r.hi > long.MaxValue)
+            else if (r.lo > long.MaxValue)
             {
                 negate(ref r.hi, ref r.lo);
                 divide(out result.hi, out result.lo, l, r);
@@ -481,7 +481,7 @@ namespace SharpFast.Numerics
 
             Number result;
 
-            if (l.hi > long.MaxValue)
+            if (l.lo > long.MaxValue)
             {
                 negate(ref l.hi, ref l.lo);
 
@@ -497,7 +497,7 @@ namespace SharpFast.Numerics
                     negate(ref result.hi, ref result.lo);
                 }
             }
-            else if (r.hi > long.MaxValue)
+            else if (r.lo > long.MaxValue)
             {
                 negate(ref r.hi, ref r.lo);
                 remainder(out result.hi, out result.lo, l, r);
