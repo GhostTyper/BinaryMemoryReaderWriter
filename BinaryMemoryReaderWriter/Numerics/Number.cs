@@ -405,11 +405,11 @@ namespace SharpFast.Numerics
         {
             ulong oli1, oli0;
 
-            if (l.lo > long.MaxValue)
+            if (l.hi > long.MaxValue)
             {
                 negate(ref l.hi, ref l.lo);
 
-                if (r.lo > long.MaxValue)
+                if (r.hi > long.MaxValue)
                 {
                     negate(ref r.hi, ref r.lo);
 
@@ -423,7 +423,7 @@ namespace SharpFast.Numerics
                     return new Number(oli1, oli0);
                 }
             }
-            else if (r.lo > long.MaxValue)
+            else if (r.hi > long.MaxValue)
             {
                 negate(ref r.hi, ref r.lo);
                 multiply(out oli1, out oli0, l, r);
@@ -444,11 +444,11 @@ namespace SharpFast.Numerics
 
             Number result;
 
-            if (l.lo > long.MaxValue)
+            if (l.hi > long.MaxValue)
             {
                 negate(ref l.hi, ref l.lo);
 
-                if (r.lo > long.MaxValue)
+                if (r.hi > long.MaxValue)
                 {
                     negate(ref r.hi, ref r.lo);
 
@@ -460,10 +460,11 @@ namespace SharpFast.Numerics
                     negate(ref result.hi, ref result.lo);
                 }
             }
-            else if (r.lo > long.MaxValue)
+            else if (r.hi > long.MaxValue)
             {
                 negate(ref r.hi, ref r.lo);
                 divide(out result.hi, out result.lo, l, r);
+                
                 negate(ref result.hi, ref result.lo);
             }
             else
@@ -481,7 +482,7 @@ namespace SharpFast.Numerics
 
             Number result;
 
-            if (l.lo > long.MaxValue)
+            if (l.hi > long.MaxValue)
             {
                 negate(ref l.hi, ref l.lo);
 
@@ -497,7 +498,7 @@ namespace SharpFast.Numerics
                     negate(ref result.hi, ref result.lo);
                 }
             }
-            else if (r.lo > long.MaxValue)
+            else if (r.hi > long.MaxValue)
             {
                 negate(ref r.hi, ref r.lo);
                 remainder(out result.hi, out result.lo, l, r);
@@ -691,14 +692,20 @@ namespace SharpFast.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void negate(ref ulong hi, ref ulong lo)
         {
-            if (hi != 0)
-                hi = 0 - hi;
+            //if (hi != 0)
+            //    hi = 0 - hi;
 
-            if (lo != 0)
-            {
-                lo = 0 - lo;
-                lo--;
-            }
+            //if (lo != 0)
+            //{
+            //    lo = 0 - lo;
+            //    lo--;
+            //}
+            ulong loTmp = lo;
+            hi = 0 - hi;
+            lo = 0 - loTmp;
+
+            if (loTmp > 0)
+                hi--;
         }
 
         public static unsafe void divide(uint* num, int nums, uint div0, uint* result)
