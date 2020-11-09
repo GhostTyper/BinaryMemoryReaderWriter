@@ -547,7 +547,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (count < 0)
                 throw new ArgumentOutOfRangeException("count", "count can't be negative.");
 
-            if (offset + count < data.Length)
+            if (offset + count > data.Length)
                 throw new ArgumentOutOfRangeException("count", "offset + count bigger than data.Length.");
 
             if (size < count)
