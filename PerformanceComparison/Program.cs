@@ -1,7 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using SharpFast.BinaryMemoryReaderWriter;
-using SharpFast.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,39 +12,9 @@ namespace PerformanceComparison
 {
     public class Program
     {
-        static Number r;
-
         static unsafe void Main()
         {
-            //for (decimal l = 1m; l <= 10m; l++)
-            //    for (decimal r = 1m; r <= 10m; r++)
-            //    {
-            //        Number n = new Number(l);
-            //        Number o = new Number(r);
-
-            //        Console.WriteLine($"{n} % {o} = {n % o}");
-            //    }
-
-            Number n = new Number(111.711m);
-            Number o = new Number(2387482.7);
-
-            Console.WriteLine($"{n} % {o} = {n % o}");
-
-            //Stopwatch sw = Stopwatch.StartNew();
-
-            //for (int i = 0; i < 10000000; i++)
-            //    r = n / o;
-
-            //sw.Restart();
-
-            //for (int i = 0; i < 10000000; i++)
-            //    r = n / o;
-
-            //sw.Stop();
-
-            //Console.WriteLine($" * {sw.Elapsed}: {sw.Elapsed.TotalMilliseconds/10.0:F} ns/op.");
-
-            // BenchmarkRunner.Run<Program>();
+            BenchmarkRunner.Run<Program>();
         }
 
         public IEnumerable<byte[]> DataSource()
