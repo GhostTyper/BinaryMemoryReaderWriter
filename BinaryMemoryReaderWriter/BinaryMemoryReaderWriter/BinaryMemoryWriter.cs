@@ -327,6 +327,59 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes the time span either in 1, 3, 5 or 8 bytes. How ever, it is limited to 7000 years of
+        /// span. If you write a longer distance, than consider just writing ticks, because this method will
+        /// truncate to the theoretical length of 2^61 ticks.
+        /// </summary>
+        /// <param name="span">The TimeSpan to write.</param>
+        public void WriteCompressed(TimeSpan span)
+        {
+            long ticks = span.Ticks;
+            bool negative = ticks < 0;
+
+            if (negative)
+                ticks = -ticks;
+
+            if (ticks > 2305843009213693951) // A little bit over 7k years.
+                ticks = 2305843009213693951;
+
+            if (ticks >= 137438953472) // We need 8 Bytes.
+            {
+                if (size < 8)
+                    throw new OutOfMemoryException(spaceError);
+
+                if (negative)
+                    ticks |= -2305843009213693952; // Magic Number for first 3 Bits without ulong cast.
+                else
+                    ticks |= -4611686018427387904; // Magic Number for first 2 Bits without ulong cast.
+
+                *(long*)position = ticks;
+
+                position += 8;
+                size -= 8;
+
+                return;
+            }
+
+            if (ticks >= 137438953472) // We need 5 Bytes.
+            {
+                if (size < 5)
+                    throw new OutOfMemoryException(spaceError);
+
+                if (negative)
+                    *position = (byte)(0xE0 | (ticks >> 32));
+                *(uint*)(position + 1) = (uint)ticks;
+
+                position += 5;
+                size -= 5;
+
+                return;
+            }
+
+            // 3 Bytes und 1 Byte fehlen noch.
+        }
+
+        /// <summary>
         /// Writes an unsigned number 7 bit encoded. (variable length.)
         /// </summary>
         /// <param name="data">The unsigned long to write 7 bit encoded.</param>

@@ -12,9 +12,9 @@ namespace PerformanceComparison
 {
     public class Program
     {
-        static unsafe void Main()
+        static void Main()
         {
-            BenchmarkRunner.Run<Program>();
+            // BenchmarkRunner.Run<Program>();
         }
 
         public IEnumerable<byte[]> DataSource()

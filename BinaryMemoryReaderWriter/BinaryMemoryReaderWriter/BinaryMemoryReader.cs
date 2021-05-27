@@ -370,6 +370,76 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Reads a compressed time span. A compressed time span will wether be stored in 1, 3, 5 or 8 bytes.
+        /// This time span needs to be shorter than 7000 years. (If you know it could be bigger: just write
+        /// the ticks and read the ticks of a time span.
+        /// </summary>
+        /// <returns>The read timespan.</returns>
+        public TimeSpan ReadCompressedTimeSpan()
+        {
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            long ticks;
+
+            switch (*position & 0b11000000)
+            {
+                default: // Just so that the compiler won't force us to preinitialize ticks. :D - every operation counts.
+                case 0b00000000: // 1 byte length.
+                    ticks = *position & 0b00011111;
+
+                    size--;
+
+                    if ((*position++ & 0b00100000) == 0b00100000)
+                        ticks = -ticks;
+                    break;
+                case 0b01000000: // 3 byte length.
+                    if (size < 3)
+                        throw new OutOfMemoryException(spaceError);
+
+                    ticks = (*position & 0b00011111) << 16;
+                    ticks |= *(ushort*)(position + 1);
+
+                    if ((*position & 0b00100000) == 0b00100000)
+                        ticks = -ticks;
+
+                    size -= 3;
+                    position += 3;
+                    break;
+                case 0b10000000: // 5 byte length.
+                    if (size < 5)
+                        throw new OutOfMemoryException(spaceError);
+
+                    ticks = (*position & 0b00011111L) << 32;
+                    ticks |= *(uint*)(position + 1);
+
+                    if ((*position & 0b00100000) == 0b00100000)
+                        ticks = -ticks;
+
+                    size -= 5;
+                    position += 5;
+                    break;
+                case 0b11000000: // 8 byte length.
+                    if (size < 8)
+                        throw new OutOfMemoryException(spaceError);
+
+                    ticks = (*position & 0b00011111L) << 56;
+                    ticks |= *(uint*)(position + 1) << 24;
+                    ticks |= (uint)*(ushort*)(position + 5) << 8;
+                    ticks |= *(position + 7);
+
+                    if ((*position & 0b00100000) == 0b00100000)
+                        ticks = -ticks;
+
+                    size -= 8;
+                    position += 8;
+                    break;
+            }
+
+            return new TimeSpan(ticks);
+        }
+
+        /// <summary>
         /// Reads a 7 bit encoded number.
         /// </summary>
         public ulong Read7BitEncoded()
