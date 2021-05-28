@@ -349,11 +349,13 @@ namespace SharpFast.BinaryMemoryReaderWriter
                     throw new OutOfMemoryException(spaceError);
 
                 if (negative)
-                    ticks |= -2305843009213693952; // Magic Number for first 3 Bits without ulong cast.
+                    *position = (byte)(0xE0 | (ticks >> 56));
                 else
-                    ticks |= -4611686018427387904; // Magic Number for first 2 Bits without ulong cast.
+                    *position = (byte)(0xC0 | (ticks >> 56));
 
-                *(long*)position = ticks;
+                *(uint*)(position + 1) = (uint)(ticks >> 24);
+                *(ushort*)(position + 5) = (ushort)(ticks >> 8);
+                *(position + 7) = (byte)ticks;
 
                 position += 8;
                 size -= 8;
@@ -361,13 +363,16 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 return;
             }
 
-            if (ticks >= 137438953472) // We need 5 Bytes.
+            if (ticks >= 2097152) // We need 5 Bytes.
             {
                 if (size < 5)
                     throw new OutOfMemoryException(spaceError);
 
                 if (negative)
-                    *position = (byte)(0xE0 | (ticks >> 32));
+                    *position = (byte)(0xA0 | (ticks >> 32));
+                else
+                    *position = (byte)(0x80 | (ticks >> 32));
+
                 *(uint*)(position + 1) = (uint)ticks;
 
                 position += 5;
@@ -376,7 +381,37 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 return;
             }
 
-            // 3 Bytes und 1 Byte fehlen noch.
+            if (ticks >= 32) // We need 3 Bytes.
+            {
+                if (size < 3)
+                    throw new OutOfMemoryException(spaceError);
+
+                if (negative)
+                    *position = (byte)(0x60 | (ticks >> 16));
+                else
+                    *position = (byte)(0x40 | (ticks >> 16));
+
+                *(ushort*)(position + 1) = (ushort)ticks;
+
+                position += 3;
+                size -= 3;
+
+                return;
+            }
+
+
+            if (size < 1)
+                throw new OutOfMemoryException(spaceError);
+
+            if (negative)
+                ticks |= 0x20;
+
+            *position = (byte)ticks;
+
+            position += 1;
+            size -= 1;
+
+            return;
         }
 
         /// <summary>

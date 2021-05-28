@@ -424,7 +424,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
                         throw new OutOfMemoryException(spaceError);
 
                     ticks = (*position & 0b00011111L) << 56;
-                    ticks |= *(uint*)(position + 1) << 24;
+                    ticks |= (long)*(uint*)(position + 1) << 24;
                     ticks |= (uint)*(ushort*)(position + 5) << 8;
                     ticks |= *(position + 7);
 

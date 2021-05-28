@@ -445,7 +445,7 @@ namespace UnitTests
             using (MemoryStream ms = new MemoryStream(data))
             using (BinaryReader reader = new BinaryReader(ms))
                 for (int count = 0; count < 256; count++)
-                    Assert.AreEqual(reader.ReadInt64(), (long)count, "BinaryMemoryWriter Long incompatible to BinaryWriter.");
+                    Assert.AreEqual((long)count, reader.ReadInt64(), "BinaryMemoryWriter Long incompatible to BinaryWriter.");
         }
 
         [TestMethod]
@@ -510,6 +510,86 @@ namespace UnitTests
 
                 for (int count = 0; count < 256; count++)
                     Assert.AreEqual(reader.ReadUInt64(), (ulong)count, "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+            }
+        }
+
+        [TestMethod]
+        public unsafe void CompressedTimeSpanRead()
+        {
+            byte[] data = new byte[122];
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryWriter writer = new BinaryMemoryWriter(pData, data.Length);
+
+                // braucht 1 Byte
+                writer.WriteCompressed(new TimeSpan(31)); // 1 Byte
+                writer.WriteCompressed(new TimeSpan(-31)); // 1 Byte
+
+                // ab 0x20 braucht 3 Byte
+                writer.WriteCompressed(new TimeSpan(0xAA)); // 1 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(0xFF)); // 1 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(0x100)); // 2 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(0x1FF)); // 2 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(0x10000)); // 3 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(0x1F000)); // 3 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(-0xAA)); // 1 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(-0xFF)); // 1 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(-0x100)); // 2 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(-0x1FF)); // 2 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(-0x10000)); // 3 -> 3 Byte
+                writer.WriteCompressed(new TimeSpan(-0x1F000)); // 3 -> 3 Byte
+
+                // ab 0x200000 braucht 5 Byte
+                writer.WriteCompressed(new TimeSpan(0x1000000)); // 4 -> 5 Byte
+                writer.WriteCompressed(new TimeSpan(0x100000000)); // 5 -> 5 Byte
+                writer.WriteCompressed(new TimeSpan(-0x1000000)); // 4 -> 5 Byte
+                writer.WriteCompressed(new TimeSpan(-0x100000000)); // 5 -> 5 Byte
+
+                // ab 0x2000000000 braucht 8 Byte                
+                writer.WriteCompressed(new TimeSpan(0x2000000000)); // 6 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(0x10000000000)); // 6 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(0x1000000000000)); // 7 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(0x100000000000000)); // 8 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(-0x2000000000)); // 6 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(-0x10000000000)); // 6 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(-0x1000000000000)); // 7 -> 8 Byte
+                writer.WriteCompressed(new TimeSpan(-0x100000000000000)); // 8 -> 8 Byte
+            }
+
+            fixed (byte* pData = data)
+            {
+                BinaryMemoryReader reader = new BinaryMemoryReader(pData, data.Length);
+
+                Assert.AreEqual(new TimeSpan(31), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-31), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+
+                Assert.AreEqual(new TimeSpan(0xAA), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0xFF), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x100), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x1FF), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x10000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x1F000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0xAA), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0xFF), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x100), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x1FF), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x10000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x1F000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+
+                Assert.AreEqual(new TimeSpan(0x1000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x100000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x1000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x100000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+
+                Assert.AreEqual(new TimeSpan(0x2000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x10000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x1000000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(0x100000000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x2000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x10000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x1000000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
+                Assert.AreEqual(new TimeSpan(-0x100000000000000), reader.ReadCompressedTimeSpan(), "BinaryMemoryReader ULong incompatible to BinaryWriter.");
             }
         }
 
