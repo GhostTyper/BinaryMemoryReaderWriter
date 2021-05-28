@@ -197,6 +197,18 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Reads a compressed time span. A compressed time span will wether be stored in 1, 3, 5 or 8 bytes.
+        /// This time span needs to be shorter than 7000 years. (If you know it could be bigger: just write
+        /// the ticks and read the ticks of a time span.
+        /// </summary>
+        /// <param name="span">The TimeSpan to write.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteCompressed(TimeSpan span)
+        {
+            currentSegment.WriteCompressed(span);
+        }
+
+        /// <summary>
         /// Writes an ulong 7 bit encoded.
         /// </summary>
         /// <param name="data">The long to write.</param>

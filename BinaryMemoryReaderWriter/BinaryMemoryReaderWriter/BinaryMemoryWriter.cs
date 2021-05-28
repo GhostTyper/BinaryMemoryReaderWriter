@@ -410,8 +410,6 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             position += 1;
             size -= 1;
-
-            return;
         }
 
         /// <summary>

@@ -89,6 +89,13 @@ namespace SharpFast.BinaryMemoryReaderWriter
         ulong ReadUInt64();
 
         /// <summary>
+        /// Reads a compressed time span. A compressed time span will wether be stored in 1, 3, 5 or 8 bytes.
+        /// This time span needs to be shorter than 7000 years. (If you know it could be bigger: just write
+        /// the ticks and read the ticks of a time span.
+        /// </summary>
+        TimeSpan ReadCompressedTimeSpan();
+
+        /// <summary>
         /// Reads a 7 bit encoded number.
         /// </summary>
         ulong Read7BitEncoded();

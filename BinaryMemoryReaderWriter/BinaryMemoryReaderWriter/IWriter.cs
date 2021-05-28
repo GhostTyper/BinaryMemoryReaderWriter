@@ -83,6 +83,14 @@ namespace SharpFast.BinaryMemoryReaderWriter
          void Write(long data);
 
         /// <summary>
+        /// Writes the time span either in 1, 3, 5 or 8 bytes. How ever, it is limited to 7000 years of
+        /// span. If you write a longer distance, than consider just writing ticks, because this method will
+        /// truncate to the theoretical length of 2^61 ticks.
+        /// </summary>
+        /// <param name="span">The TimeSpan to write.</param>
+         void WriteCompressed(TimeSpan span);
+
+        /// <summary>
         /// Writes an unsigned number 7 bit encoded. (variable length.)
         /// </summary>
         /// <param name="data">The unsigned long to write 7 bit encoded.</param>

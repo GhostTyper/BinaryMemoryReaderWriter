@@ -514,6 +514,94 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void CompressedTimeSpanRead()
+        {
+            int required = 0;
+
+            List<long> timeLongs = new List<long>()
+            {
+                //Limits 1 Byte -> 3 Byte
+                0, 1, -1, 0x1F, -0x1F, 0x20, -0x20,
+
+                0xFF_FF, -0xFF_FF, 0x01_00_00, -0x01_00_00,
+
+                //Limits 3 Byte -> 5 Byte                
+                0x1F_FF_FF, -0x1F_FF_FF, 0x20_00_00, -0x20_00_00,
+
+                0x01_00_00_00, -0x01_00_00_00,
+                0xFF_FF_FF_FF, -0xFF_FF_FF_FF,
+                0x01_00_00_00_00, -0x01_00_00_00_00,
+                0x01_01_00_00_00, -0x01_01_00_00_00,
+                0x01_00_01_00_00, -0x01_00_01_00_00,
+                0x01_00_00_01_00, -0x01_00_00_01_00,
+                0x01_00_00_00_01, -0x01_00_00_00_01,
+
+                //Limits 5 Byte -> 8 Byte
+                0x1F_FF_FF_FF_FF, -0x1F_FF_FF_FF_FF, 0x20_00_00_00_00, -0x20_00_00_00_00,
+
+                0x01_00_00_00_00, -0x01_00_00_00_00,
+                0xFF_FF_FF_FF_FF, -0xFF_FF_FF_FF_FF,
+                0xFF_00_FF_FF_FF, -0xFF_00_FF_FF_FF,
+                0xFF_FF_00_FF_FF, -0xFF_FF_00_FF_FF,
+                0xFF_FF_FF_00_FF, -0xFF_FF_FF_00_FF,
+                0xFF_FF_FF_FF_00, -0xFF_FF_FF_FF_00,
+                0x01_00_00_00_00_00, -0x01_00_00_00_00_00,
+                0x01_00_00_01_00_00, -0x01_00_00_01_00_00,
+                0x01_00_00_00_01_00, -0x01_00_00_00_01_00,
+                0x01_00_00_00_00_01, -0x01_00_00_00_00_01,
+                0xFF_FF_FF_FF_FF_FF, -0xFF_FF_FF_FF_FF_FF,
+                0x01_00_00_00_00_00_00, -0x01_00_00_00_00_00_00,
+                0x01_00_00_00_00_01_00, -0x01_00_00_00_00_01_00,
+                0x01_00_00_00_00_00_01, -0x01_00_00_00_00_00_01,
+                0xFF_FF_FF_FF_FF_FF_FF, -0xFF_FF_FF_FF_FF_FF_FF,
+                0x01_00_00_00_00_00_00_00, -0x01_00_00_00_00_00_00_00,
+                0x01_00_00_00_00_00_01_00, -0x01_00_00_00_00_00_01_00,
+                0x01_00_00_00_00_00_00_01, -0x01_00_00_00_00_00_00_01,
+
+                //Limits -> 8 Byte
+                0x1F_FF_FF_FF_FF_FF_FF_FF, -0x1F_FF_FF_FF_FF_FF_FF_FF
+            };
+
+            foreach (long timeLong in timeLongs)
+            {
+                long checkLong = timeLong;
+                if (checkLong < 0)
+                    checkLong = -checkLong;
+
+                if (checkLong >= 137438953472)
+                    required += 8;
+                else if (checkLong >= 2097152)
+                    required += 5;
+                else if (checkLong >= 32)
+                    required += 3;
+                else
+                    required += 1;
+            }
+
+            byte[] data = new byte[required];
+
+            List<TimeSpan> timeSpans = new List<TimeSpan>();
+            foreach (long timeLong in timeLongs)
+                timeSpans.Add(new TimeSpan(timeLong));
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryWriter writer = new UnsafeBinaryMemoryWriter(pData);
+
+                foreach (TimeSpan timeSpan in timeSpans)
+                    writer.WriteCompressed(timeSpan);
+            }
+
+            fixed (byte* pData = data)
+            {
+                UnsafeBinaryMemoryReader reader = new UnsafeBinaryMemoryReader(pData);
+
+                foreach (TimeSpan timeSpan in timeSpans)
+                    Assert.AreEqual(timeSpan, reader.ReadCompressedTimeSpan(), "UnsafeBinaryMemoryReader TimeSpan Compressed incompatible to UnsafeBinaryMemoryWriter.");
+            }
+        }
+
+        [TestMethod]
         public unsafe void SevenBitEncoded()
         {
             byte[] data;

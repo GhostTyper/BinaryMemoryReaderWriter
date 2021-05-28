@@ -377,6 +377,118 @@ namespace SharpFast.BinaryMemoryReaderWriter
         }
 
         /// <summary>
+        /// Writes the time span either in 1, 3, 5 or 8 bytes. How ever, it is limited to 7000 years of
+        /// span. If you write a longer distance, than consider just writing ticks, because this method will
+        /// truncate to the theoretical length of 2^61 ticks.
+        /// </summary>
+        /// <param name="span">The long to write.</param>
+        internal unsafe void WriteCompressed(TimeSpan span)
+        {
+            long ticks = span.Ticks;
+            bool negative = ticks < 0;
+
+            if (negative)
+                ticks = -ticks;
+
+            if (ticks > 2305843009213693951) // A little bit over 7k years.
+                ticks = 2305843009213693951;
+
+            if (ticks >= 137438953472) // We need 8 Bytes.
+            {
+                if (size < 8)
+                {
+                    writer.flush(this);
+                    next.WriteCompressed(span);
+                    return;
+                }
+
+                fixed (byte* bData = this.data)
+                {
+                    if (negative)
+                        *(bData + position) = (byte)(0xE0 | (ticks >> 56));
+                    else
+                        *(bData + position) = (byte)(0xC0 | (ticks >> 56));
+
+                    *(uint*)(bData + position + 1) = (uint)(ticks >> 24);
+                    *(ushort*)(bData + position + 5) = (ushort)(ticks >> 8);
+                    *(bData + position + 7) = (byte)ticks;
+                }
+
+                position += 8;
+                size -= 8;
+
+                return;
+            }
+
+            if (ticks >= 2097152) // We need 5 Bytes.
+            {
+                if (size < 5)
+                {
+                    writer.flush(this);
+                    next.WriteCompressed(span);
+                    return;
+                }
+
+                fixed (byte* bData = this.data)
+                {
+                    if (negative)
+                        *(bData + position) = (byte)(0xA0 | (ticks >> 32));
+                    else
+                        *(bData + position) = (byte)(0x80 | (ticks >> 32));
+
+                    *(uint*)(bData + position + 1) = (uint)ticks;
+                }
+
+                position += 5;
+                size -= 5;
+
+                return;
+            }
+
+            if (ticks >= 32) // We need 3 Bytes.
+            {
+                if (size < 3)
+                {
+                    writer.flush(this);
+                    next.WriteCompressed(span);
+                    return;
+                }
+
+                fixed (byte* bData = this.data)
+                {
+                    if (negative)
+                        *(bData + position) = (byte)(0x60 | (ticks >> 16));
+                    else
+                        *(bData + position) = (byte)(0x40 | (ticks >> 16));
+
+                    *(ushort*)(bData + position + 1) = (ushort)ticks;
+                }
+
+                position += 3;
+                size -= 3;
+
+                return;
+            }
+
+
+            if (size < 1)
+            {
+                writer.flush(this);
+                next.WriteCompressed(span);
+                return;
+            }
+
+            if (negative)
+                ticks |= 0x20;
+
+            fixed (byte* bData = this.data)
+                *(bData + position) = (byte)ticks;
+
+            position += 1;
+            size -= 1;
+        }
+
+        /// <summary>
         /// Writes an unsigned number 7 bit encoded. (variable length.)
         /// </summary>
         /// <param name="data">The unsigned long to write 7 bit encoded.</param>
