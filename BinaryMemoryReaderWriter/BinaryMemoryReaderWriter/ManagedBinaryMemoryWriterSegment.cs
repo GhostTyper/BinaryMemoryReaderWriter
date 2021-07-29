@@ -186,7 +186,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
             if (size < requiredSize)
             {
                 writer.flush(this, requiredSize + 1024);
-                next.Write(text);
+                next.WriteVanillaString(text);
                 return requiredSize;
             }
 
