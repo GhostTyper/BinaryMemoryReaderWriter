@@ -97,7 +97,8 @@ writer.Write(27392L); // Some other data.
 // Fill the previous slot with information which got available right now.
 size.Write((short)42);
 
-// We need to call finish on the insertion point so that all counters like writer.Length will be updated accordingly.
+// We need to call finish on the insertion point so that all counters like writer.Length will
+// be updated accordingly.
 size.Finish();
 ```
 
