@@ -14,7 +14,7 @@ namespace PerformanceComparison
     {
         static void Main()
         {
-            // BenchmarkRunner.Run<Program>();
+            BenchmarkRunner.Run<Program>();
         }
 
         public IEnumerable<byte[]> DataSource()

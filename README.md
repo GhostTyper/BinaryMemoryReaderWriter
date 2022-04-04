@@ -101,9 +101,42 @@ size.Write((short)42);
 size.Finish();
 ```
 
+I added an StreamWriter which should dam GCWait secitions in threads. The writer can be used like this:
+
+```csharp
+BinaryStreamWriter writer = new BinaryStreamWriter();
+
+using (BinaryStreamWriterExternal insertionPoint = writer.Write(4))
+using (BinaryStreamWriterExternal external = writer.Write(64))
+{
+    external.Writer.Write(0x11111111);
+    external.Writer.Write(0x22222222);
+    external.Writer.Write(0x33333333);
+    external.Writer.Write(0x44444444);
+
+    // Later we write what we wanted to insert
+    insertionPoint.Writer.Write((short)0x5555);
+}
+
+byte[] data;
+
+using (MemoryStream ms = new MemoryStream())
+{
+    writer.PushToStream(ms);
+
+    data = ms.ToArray();
+}
+
+// The final layout (in data) looks like this:
+// 0x555511111111222222223333333344444444
+```
+
+It may be a good advice to add a `BufferedStream` in between the target stream because every insertion command will be a single write.
+
 # What to consider?
 
 * Those readers and writers aren't classes (except `ManagedBinaryMemoryWriter`). They are structs. This means, you should pass them via the `ref` keyword, if you want to pass them to another method.
 * The readers with `Unsafe` in their name are *unsafe*. They will just continue writing over the memory borders. Also the `Unsafe` versions will not check parameters like the `step` size of the `Jump` method. Beware!
 * Char operations are not exactly compatible with the BinaryWriter or Reader from the .NET framework. These BinaryReaders and Writers here also write `Surrogate` characters without exception.
 * `ManagedBinaryMemoryWriter` is a class. There currently exists no reader, because you usually can initialize an existing array easily with one of the other readers. If there is a real demand, I will write a ManagedBinaryMemoryReader.
+* `BinaryStreamWriter` is also a class and it also doesn't have a reader.

@@ -6,7 +6,7 @@
     <RootNamespace>SharpFast.BinaryMemoryReaderWriter</RootNamespace>
     <AssemblyVersion>1.1.1.0</AssemblyVersion>
     <FileVersion>1.1.1.0</FileVersion>
-    <Version>1.1.1</Version>
+    <Version>1.2</Version>
     <Company>Lukaseder Hard- und Softwareentwicklung</Company>
     <Copyright>Matthias Lukaseder</Copyright>
     <Description>High performance memory readers/writers.</Description>
