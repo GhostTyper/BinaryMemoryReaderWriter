@@ -12,11 +12,16 @@ namespace SharpFast.BinaryMemoryReaderWriter
     /// </summary>
     public class BinaryStreamWriter
     {
-        private BinaryStreamWriterCommand[] commands;
+        internal BinaryStreamWriterCommand[] commands;
         private byte[] additionalData;
 
         private int currentCommand;
         private int currentData;
+
+        /// <summary>
+        /// The length of all committed write commands together.
+        /// </summary>
+        internal long committedLength;
 
         /// <summary>
         /// Creates an instance of a BinaryStreamWriter.
@@ -28,6 +33,11 @@ namespace SharpFast.BinaryMemoryReaderWriter
             commands = new BinaryStreamWriterCommand[commandQueue];
             this.additionalData = new byte[additionalData];
         }
+
+        /// <summary>
+        /// The length of all committed write commands together.
+        /// </summary>
+        public long CommittedLength => committedLength;
 
         /// <summary>
         /// Writes various data to the StreamWriter.
@@ -44,7 +54,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             if (size < 65536)
             {
-                result = new BinaryStreamWriterExternal(commands, currentCommand, additionalData, currentData, size);
+                result = new BinaryStreamWriterExternal(this, currentCommand, additionalData, currentData, size);
 
                 currentCommand++;
                 currentData += size;
@@ -55,7 +65,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 return result;
             }
 
-            result = new BinaryStreamWriterExternal(commands, currentCommand, size);
+            result = new BinaryStreamWriterExternal(this, currentCommand, size);
 
             currentCommand++;
 
@@ -74,6 +84,24 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 throw new OutOfMemoryException("commandQueue is full.");
 
             commands[currentCommand++] = new BinaryStreamWriterCommand(data, offset, length);
+            committedLength += length;
+        }
+
+        /// <summary>
+        /// Writes the complete content of the memory stream. If you alter the contents, altered contents may be written.
+        /// </summary>
+        /// <param name="ms">The memory stream to write.</param>
+        /// <exception cref="OutOfMemoryException">Out of memory exception, if the command queue is full or the memory stream is too large.</exception>
+        public void Write(MemoryStream ms)
+        {
+            if (currentCommand >= commands.Length)
+                throw new OutOfMemoryException("commandQueue is full.");
+
+            if (ms.Position > int.MaxValue)
+                throw new OutOfMemoryException("The memory stream is too large.");
+
+            commands[currentCommand++] = new BinaryStreamWriterCommand(ms.GetBuffer(), 0, (int)ms.Position);
+            committedLength += ms.Position;
         }
 
         /// <summary>

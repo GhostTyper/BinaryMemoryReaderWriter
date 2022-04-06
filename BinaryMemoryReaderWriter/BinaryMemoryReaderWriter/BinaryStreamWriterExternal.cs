@@ -10,7 +10,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
     /// </summary>
     public class BinaryStreamWriterExternal : IDisposable
     {
-        private BinaryStreamWriterCommand[] commands;
+        BinaryStreamWriter writer;
         private int command;
 
         private GCHandle handle;
@@ -23,9 +23,9 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// </summary>
         public BinaryMemoryWriter Writer;
 
-        internal unsafe BinaryStreamWriterExternal(BinaryStreamWriterCommand[] commands, int command, int size)
+        internal unsafe BinaryStreamWriterExternal(BinaryStreamWriter writer, int command, int size)
         {
-            this.commands = commands;
+            this.writer = writer;
             this.command = command;
 
             data = new byte[size];
@@ -36,12 +36,12 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             @base = Writer;
 
-            commands[command] = new BinaryStreamWriterCommand(data, 0);
+            writer.commands[command] = new BinaryStreamWriterCommand(data, 0);
         }
 
-        internal unsafe BinaryStreamWriterExternal(BinaryStreamWriterCommand[] commands, int command, byte[] data, int position, int size)
+        internal unsafe BinaryStreamWriterExternal(BinaryStreamWriter writer, int command, byte[] data, int position, int size)
         {
-            this.commands = commands;
+            this.writer = writer;
             this.command = command;
 
             this.data = data;
@@ -52,7 +52,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
 
             @base = Writer;
 
-            commands[command] = new BinaryStreamWriterCommand(data, position);
+            writer.commands[command] = new BinaryStreamWriterCommand(data, position);
         }
 
         /// <summary>
@@ -61,10 +61,13 @@ namespace SharpFast.BinaryMemoryReaderWriter
         /// <exception cref="InvalidOperationException"></exception>
         public unsafe void Dispose()
         {
-            if (commands[command].Length != -1)
+            if (writer.commands[command].Length != -1)
                 throw new InvalidOperationException("External writers can only be finalized once.");
 
-            commands[command].Length = (int)(Writer.Position - @base.Position);
+            int length = (int)(Writer.Position - @base.Position);
+
+            writer.commands[command].Length = length;
+            writer.committedLength += length;
 
             handle.Free();
         }

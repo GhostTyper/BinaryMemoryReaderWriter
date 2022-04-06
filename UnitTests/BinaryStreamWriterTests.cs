@@ -122,6 +122,56 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void MemoryStream()
+        {
+            BinaryStreamWriter writer = new BinaryStreamWriter();
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(new byte[] { 0x11, 0x11, 0x11, 0x11 }, 0, 4);
+                writer.Write(ms);
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(new byte[] { 0x22, 0x22, 0x22, 0x22 }, 0, 4);
+                writer.Write(ms);
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(new byte[] { 0x33, 0x33, 0x33, 0x33 }, 0, 4);
+                writer.Write(ms);
+            }
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(new byte[] { 0x44, 0x44, 0x44, 0x44 }, 0, 4);
+                writer.Write(ms);
+            }
+
+            byte[] data;
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                writer.PushToStream(ms);
+
+                data = ms.ToArray();
+            }
+
+            Assert.AreEqual(16, data.Length);
+
+            using (MemoryStream ms = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(ms))
+            {
+                Assert.AreEqual(0x11111111, reader.ReadInt32());
+                Assert.AreEqual(0x22222222, reader.ReadInt32());
+                Assert.AreEqual(0x33333333, reader.ReadInt32());
+                Assert.AreEqual(0x44444444, reader.ReadInt32());
+            }
+        }
+
+        [TestMethod]
         public unsafe void OutOfMemory()
         {
             BinaryStreamWriter writer = new BinaryStreamWriter();
@@ -195,6 +245,34 @@ namespace UnitTests
                 Assert.AreEqual(0x33333333, reader.ReadInt32());
                 Assert.AreEqual(0x44444444, reader.ReadInt32());
             }
+        }
+
+        [TestMethod]
+        public unsafe void CommittedLength()
+        {
+            BinaryStreamWriter writer = new BinaryStreamWriter();
+
+            using (BinaryStreamWriterExternal external = writer.Write(16))
+                external.Writer.Write(0x11111111);
+
+            Assert.AreEqual(4, writer.CommittedLength);
+
+            writer.Write(new byte[4], 0, 4);
+
+            Assert.AreEqual(8, writer.CommittedLength);
+
+            using (BinaryStreamWriterExternal external = writer.Write(80000))
+                external.Writer.Write(0x33333333);
+
+            Assert.AreEqual(12, writer.CommittedLength);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(new byte[] { 0x44, 0x44 }, 0, 2);
+                writer.Write(ms);
+            }
+
+            Assert.AreEqual(14, writer.CommittedLength);
         }
     }
 }
