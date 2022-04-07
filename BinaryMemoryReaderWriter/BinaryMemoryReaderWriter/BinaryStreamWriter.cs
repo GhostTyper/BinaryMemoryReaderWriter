@@ -59,7 +59,7 @@ namespace SharpFast.BinaryMemoryReaderWriter
                 currentCommand++;
                 currentData += size;
 
-                if (currentData >= additionalData.Length)
+                if (currentData > additionalData.Length)
                     throw new OutOfMemoryException("additional data space exceedet.");
 
                 return result;

@@ -174,13 +174,18 @@ namespace UnitTests
         [TestMethod]
         public unsafe void OutOfMemory()
         {
-            BinaryStreamWriter writer = new BinaryStreamWriter();
+            BinaryStreamWriter writer = new BinaryStreamWriter(5, 3);
 
             try
             {
-                for (int block = 0; block < 257; block++)
-                    using (BinaryStreamWriterExternal external = writer.Write(32768))
-                        external.Writer.Write(0x11111111);
+                using (BinaryStreamWriterExternal external = writer.Write(2))
+                    external.Writer.Write((ushort)0x1111);
+
+                using (BinaryStreamWriterExternal external = writer.Write(1))
+                    external.Writer.Write((byte)0x11);
+
+                using (BinaryStreamWriterExternal external = writer.Write(1))
+                    external.Writer.Write((byte)0x11);
             }
             catch (OutOfMemoryException)
             {
@@ -191,15 +196,32 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public unsafe void WithinMemory()
+        {
+            BinaryStreamWriter writer = new BinaryStreamWriter(5, 3);
+
+            using (BinaryStreamWriterExternal external = writer.Write(2))
+                external.Writer.Write((ushort)0x1111);
+
+            using (BinaryStreamWriterExternal external = writer.Write(1))
+                external.Writer.Write((byte)0x11);
+        }
+
+        [TestMethod]
         public unsafe void OutOfCommandQueue()
         {
-            BinaryStreamWriter writer = new BinaryStreamWriter();
+            BinaryStreamWriter writer = new BinaryStreamWriter(2, 5);
 
             try
             {
-                for (int block = 0; block < 131073; block++)
-                    using (BinaryStreamWriterExternal external = writer.Write(4))
-                        external.Writer.Write(0x00000000);
+                using (BinaryStreamWriterExternal external = writer.Write(2))
+                    external.Writer.Write((ushort)0x1111);
+
+                using (BinaryStreamWriterExternal external = writer.Write(1))
+                    external.Writer.Write((byte)0x11);
+
+                using (BinaryStreamWriterExternal external = writer.Write(1))
+                    external.Writer.Write((byte)0x11);
             }
             catch (OutOfMemoryException)
             {
@@ -207,6 +229,18 @@ namespace UnitTests
             }
 
             Assert.Fail("Should have thrown an out of memory exception.");
+        }
+
+        [TestMethod]
+        public unsafe void WithinCommandQueue()
+        {
+            BinaryStreamWriter writer = new BinaryStreamWriter(2, 5);
+
+            using (BinaryStreamWriterExternal external = writer.Write(2))
+                external.Writer.Write((ushort)0x1111);
+
+            using (BinaryStreamWriterExternal external = writer.Write(1))
+                external.Writer.Write((byte)0x11);
         }
 
         [TestMethod]
